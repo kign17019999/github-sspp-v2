@@ -1,0 +1,1 @@
+/apps/software/GCCcore/8.3.0/bin/c++  -O3  -rdynamic CMakeFiles/matrix_add.dir/matrix_add_generated_02-matrix_add.cu.o  -o matrix_add -Wl,-Bstatic -lcudart_static -Wl,-Bdynamic -lpthread -ldl -lrt 

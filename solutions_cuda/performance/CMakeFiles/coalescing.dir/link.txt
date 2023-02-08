@@ -1,0 +1,1 @@
+/apps/software/GCCcore/8.3.0/bin/c++  -O3  -rdynamic CMakeFiles/coalescing.dir/coalescing_generated_02-coalescing.cu.o  -o coalescing -Wl,-Bstatic -lcudart_static -Wl,-Bdynamic -lpthread -ldl -lrt 

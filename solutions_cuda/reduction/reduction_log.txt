@@ -1,0 +1,385 @@
+Testing reduction algorithm 0  on a DOUBLE vector of size:  10000
+CPU reduction:            5041.1 0.014 ms. 
+GPU reduction:            5041.1 0.075 ms. 
+Relative difference:            1.0825e-15
+Measured bandwidth:             1.06667 GB/s
+Testing reduction algorithm 1  on a DOUBLE vector of size:  10000
+CPU reduction:            5041.1 0.014 ms. 
+GPU reduction:            5041.1 0.037 ms. 
+Relative difference:            1.0825e-15
+Measured bandwidth:             2.16216 GB/s
+Testing reduction algorithm 2  on a DOUBLE vector of size:  10000
+CPU reduction:            5041.1 0.014 ms. 
+GPU reduction:            5041.1 0.04 ms. 
+Relative difference:            1.0825e-15
+Measured bandwidth:             2 GB/s
+Testing reduction algorithm 3  on a DOUBLE vector of size:  10000
+CPU reduction:            5041.1 0.014 ms. 
+GPU reduction:            5041.1 0.036 ms. 
+Relative difference:            1.0825e-15
+Measured bandwidth:             2.22222 GB/s
+Testing reduction algorithm 4  on a DOUBLE vector of size:  10000
+CPU reduction:            5041.1 0.013 ms. 
+GPU reduction:            5041.1 0.04 ms. 
+Relative difference:            1.0825e-15
+Measured bandwidth:             2 GB/s
+Testing reduction algorithm 5  on a DOUBLE vector of size:  10000
+CPU reduction:            5041.1 0.014 ms. 
+GPU reduction:            5041.1 0.041 ms. 
+Relative difference:            1.0825e-15
+Measured bandwidth:             1.95122 GB/s
+Testing reduction algorithm 6  on a DOUBLE vector of size:  10000
+CPU reduction:            4993.92 0.013 ms. 
+GPU reduction:            4993.92 0.038 ms. 
+Relative difference:            1.63908e-15
+Measured bandwidth:             2.10526 GB/s
+Testing reduction algorithm 7  on a DOUBLE vector of size:  10000
+CPU reduction:            4993.92 0.013 ms. 
+GPU reduction:            4993.92 0.039 ms. 
+Relative difference:            1.63908e-15
+Measured bandwidth:             2.05128 GB/s
+Testing reduction algorithm 8  on a DOUBLE vector of size:  10000
+CPU reduction:            4993.92 0.014 ms. 
+GPU reduction:            4993.92 0.039 ms. 
+Relative difference:            1.63908e-15
+Measured bandwidth:             2.05128 GB/s
+Testing reduction algorithm 9  on a DOUBLE vector of size:  10000
+CPU reduction:            4993.92 0.013 ms. 
+GPU reduction:            4993.92 0.041 ms. 
+Relative difference:            1.63908e-15
+Measured bandwidth:             1.95122 GB/s
+Testing reduction algorithm 10  on a DOUBLE vector of size:  10000
+CPU reduction:            4993.92 0.014 ms. 
+GPU reduction:            4993.92 0.04 ms. 
+Relative difference:            1.63908e-15
+Measured bandwidth:             2 GB/s
+Testing reduction algorithm 0  on a DOUBLE vector of size:  100000
+CPU reduction:            49819.8 0.156 ms. 
+GPU reduction:            49819.8 0.066 ms. 
+Relative difference:            5.69578e-15
+Measured bandwidth:             12.1212 GB/s
+Testing reduction algorithm 1  on a DOUBLE vector of size:  100000
+CPU reduction:            49819.8 0.163 ms. 
+GPU reduction:            49819.8 0.05 ms. 
+Relative difference:            5.69578e-15
+Measured bandwidth:             16 GB/s
+Testing reduction algorithm 2  on a DOUBLE vector of size:  100000
+CPU reduction:            49819.8 0.162 ms. 
+GPU reduction:            49819.8 0.055 ms. 
+Relative difference:            5.69578e-15
+Measured bandwidth:             14.5455 GB/s
+Testing reduction algorithm 3  on a DOUBLE vector of size:  100000
+CPU reduction:            50233 0.155 ms. 
+GPU reduction:            50233 0.051 ms. 
+Relative difference:            1.59329e-15
+Measured bandwidth:             15.6863 GB/s
+Testing reduction algorithm 4  on a DOUBLE vector of size:  100000
+CPU reduction:            50233 0.142 ms. 
+GPU reduction:            52067.8 0.052 ms. 
+Relative difference:            0.0352401
+Measured bandwidth:             15.3846 GB/s
+Testing reduction algorithm 5  on a DOUBLE vector of size:  100000
+CPU reduction:            50233 0.157 ms. 
+GPU reduction:            65609.8 0.042 ms. 
+Relative difference:            0.234368
+Measured bandwidth:             19.0476 GB/s
+Testing reduction algorithm 6  on a DOUBLE vector of size:  100000
+CPU reduction:            50233 0.142 ms. 
+GPU reduction:            63788.5 0.047 ms. 
+Relative difference:            0.212507
+Measured bandwidth:             17.0213 GB/s
+Testing reduction algorithm 7  on a DOUBLE vector of size:  100000
+CPU reduction:            50233 0.161 ms. 
+GPU reduction:            62031.1 0.041 ms. 
+Relative difference:            0.190197
+Measured bandwidth:             19.5122 GB/s
+Testing reduction algorithm 8  on a DOUBLE vector of size:  100000
+CPU reduction:            50233 0.155 ms. 
+GPU reduction:            50233 0.05 ms. 
+Relative difference:            1.59329e-15
+Measured bandwidth:             16 GB/s
+Testing reduction algorithm 9  on a DOUBLE vector of size:  100000
+CPU reduction:            50233 0.155 ms. 
+GPU reduction:            50233 0.048 ms. 
+Relative difference:            1.59329e-15
+Measured bandwidth:             16.6667 GB/s
+Testing reduction algorithm 10  on a DOUBLE vector of size:  100000
+CPU reduction:            50233 0.158 ms. 
+GPU reduction:            50233 0.048 ms. 
+Relative difference:            1.59329e-15
+Measured bandwidth:             16.6667 GB/s
+Testing reduction algorithm 0  on a DOUBLE vector of size:  1000000
+CPU reduction:            499663 1.485 ms. 
+GPU reduction:            499663 0.28 ms. 
+Relative difference:            3.66956e-14
+Measured bandwidth:             28.5714 GB/s
+Testing reduction algorithm 1  on a DOUBLE vector of size:  1000000
+CPU reduction:            499663 1.421 ms. 
+GPU reduction:            499663 0.129 ms. 
+Relative difference:            3.66956e-14
+Measured bandwidth:             62.0155 GB/s
+Testing reduction algorithm 2  on a DOUBLE vector of size:  1000000
+CPU reduction:            499663 1.435 ms. 
+GPU reduction:            499663 0.139 ms. 
+Relative difference:            3.66956e-14
+Measured bandwidth:             57.554 GB/s
+Testing reduction algorithm 3  on a DOUBLE vector of size:  1000000
+CPU reduction:            499663 1.49 ms. 
+GPU reduction:            499663 0.14 ms. 
+Relative difference:            3.66956e-14
+Measured bandwidth:             57.1429 GB/s
+Testing reduction algorithm 4  on a DOUBLE vector of size:  1000000
+CPU reduction:            499663 1.438 ms. 
+GPU reduction:            499663 0.142 ms. 
+Relative difference:            3.68121e-14
+Measured bandwidth:             56.338 GB/s
+Testing reduction algorithm 5  on a DOUBLE vector of size:  1000000
+CPU reduction:            499663 1.434 ms. 
+GPU reduction:            499663 0.116 ms. 
+Relative difference:            3.68121e-14
+Measured bandwidth:             68.9655 GB/s
+Testing reduction algorithm 6  on a DOUBLE vector of size:  1000000
+CPU reduction:            499663 1.449 ms. 
+GPU reduction:            499663 0.111 ms. 
+Relative difference:            3.68121e-14
+Measured bandwidth:             72.0721 GB/s
+Testing reduction algorithm 7  on a DOUBLE vector of size:  1000000
+CPU reduction:            499663 1.433 ms. 
+GPU reduction:            499663 0.105 ms. 
+Relative difference:            3.68121e-14
+Measured bandwidth:             76.1905 GB/s
+Testing reduction algorithm 8  on a DOUBLE vector of size:  1000000
+CPU reduction:            499837 1.441 ms. 
+GPU reduction:            499837 0.068 ms. 
+Relative difference:            6.9872e-16
+Measured bandwidth:             117.647 GB/s
+Testing reduction algorithm 9  on a DOUBLE vector of size:  1000000
+CPU reduction:            499837 1.437 ms. 
+GPU reduction:            499837 0.087 ms. 
+Relative difference:            5.82267e-16
+Measured bandwidth:             91.954 GB/s
+Testing reduction algorithm 10  on a DOUBLE vector of size:  1000000
+CPU reduction:            499837 1.43 ms. 
+GPU reduction:            499837 0.066 ms. 
+Relative difference:            5.82267e-16
+Measured bandwidth:             121.212 GB/s
+Testing reduction algorithm 0  on a DOUBLE vector of size:  10000000
+CPU reduction:            4.99934e+06 13.097 ms. 
+GPU reduction:            4.99934e+06 1.026 ms. 
+Relative difference:            5.01118e-14
+Measured bandwidth:             77.9727 GB/s
+Testing reduction algorithm 1  on a DOUBLE vector of size:  10000000
+CPU reduction:            4.99934e+06 13.338 ms. 
+GPU reduction:            4.99934e+06 0.885 ms. 
+Relative difference:            5.01118e-14
+Measured bandwidth:             90.3955 GB/s
+Testing reduction algorithm 2  on a DOUBLE vector of size:  10000000
+CPU reduction:            5.00006e+06 13.122 ms. 
+GPU reduction:            5.00006e+06 0.733 ms. 
+Relative difference:            5.56924e-14
+Measured bandwidth:             109.141 GB/s
+Testing reduction algorithm 3  on a DOUBLE vector of size:  10000000
+CPU reduction:            5.00006e+06 13.474 ms. 
+GPU reduction:            5.00006e+06 0.712 ms. 
+Relative difference:            5.56924e-14
+Measured bandwidth:             112.36 GB/s
+Testing reduction algorithm 4  on a DOUBLE vector of size:  10000000
+CPU reduction:            5.00006e+06 13.128 ms. 
+GPU reduction:            5.00006e+06 0.762 ms. 
+Relative difference:            5.58786e-14
+Measured bandwidth:             104.987 GB/s
+Testing reduction algorithm 5  on a DOUBLE vector of size:  10000000
+CPU reduction:            5.00006e+06 13.522 ms. 
+GPU reduction:            5.00006e+06 0.525 ms. 
+Relative difference:            5.58786e-14
+Measured bandwidth:             152.381 GB/s
+Testing reduction algorithm 6  on a DOUBLE vector of size:  10000000
+CPU reduction:            5.00021e+06 13.206 ms. 
+GPU reduction:            5.00021e+06 0.525 ms. 
+Relative difference:            1.06353e-13
+Measured bandwidth:             152.381 GB/s
+Testing reduction algorithm 7  on a DOUBLE vector of size:  10000000
+CPU reduction:            5.00021e+06 12.918 ms. 
+GPU reduction:            5.00021e+06 0.494 ms. 
+Relative difference:            1.06353e-13
+Measured bandwidth:             161.943 GB/s
+Testing reduction algorithm 8  on a DOUBLE vector of size:  10000000
+CPU reduction:            5.00021e+06 13.034 ms. 
+GPU reduction:            5.00021e+06 0.25 ms. 
+Relative difference:            1.06353e-13
+Measured bandwidth:             320 GB/s
+Testing reduction algorithm 9  on a DOUBLE vector of size:  10000000
+CPU reduction:            5.00021e+06 13.37 ms. 
+GPU reduction:            5.00021e+06 0.248 ms. 
+Relative difference:            1.06353e-13
+Measured bandwidth:             322.581 GB/s
+Testing reduction algorithm 10  on a DOUBLE vector of size:  10000000
+CPU reduction:            4.99887e+06 14.676 ms. 
+GPU reduction:            4.99887e+06 0.243 ms. 
+Relative difference:            1.45319e-14
+Measured bandwidth:             329.218 GB/s
+Testing reduction algorithm 0  on a DOUBLE vector of size:  40000000
+CPU reduction:            1.99975e+07 51.689 ms. 
+GPU reduction:            1.99975e+07 3.555 ms. 
+Relative difference:            6.59457e-14
+Measured bandwidth:             90.0141 GB/s
+Testing reduction algorithm 1  on a DOUBLE vector of size:  40000000
+CPU reduction:            1.99986e+07 51.344 ms. 
+GPU reduction:            1.99986e+07 3.411 ms. 
+Relative difference:            1.45297e-13
+Measured bandwidth:             93.8141 GB/s
+Testing reduction algorithm 2  on a DOUBLE vector of size:  40000000
+CPU reduction:            1.99986e+07 53.261 ms. 
+GPU reduction:            1.99986e+07 2.786 ms. 
+Relative difference:            1.45297e-13
+Measured bandwidth:             114.86 GB/s
+Testing reduction algorithm 3  on a DOUBLE vector of size:  40000000
+CPU reduction:            1.99999e+07 52.135 ms. 
+GPU reduction:            1.99999e+07 2.673 ms. 
+Relative difference:            4.21704e-13
+Measured bandwidth:             119.716 GB/s
+Testing reduction algorithm 4  on a DOUBLE vector of size:  40000000
+CPU reduction:            1.99991e+07 51.734 ms. 
+GPU reduction:            1.99991e+07 2.939 ms. 
+Relative difference:            5.71858e-14
+Measured bandwidth:             108.881 GB/s
+Testing reduction algorithm 5  on a DOUBLE vector of size:  40000000
+CPU reduction:            1.99991e+07 57.24 ms. 
+GPU reduction:            1.99991e+07 1.976 ms. 
+Relative difference:            5.71858e-14
+Measured bandwidth:             161.943 GB/s
+Testing reduction algorithm 6  on a DOUBLE vector of size:  40000000
+CPU reduction:            2.00005e+07 52.449 ms. 
+GPU reduction:            2.00005e+07 1.979 ms. 
+Relative difference:            2.23512e-15
+Measured bandwidth:             161.698 GB/s
+Testing reduction algorithm 7  on a DOUBLE vector of size:  40000000
+CPU reduction:            2.00014e+07 51.318 ms. 
+GPU reduction:            2.00014e+07 1.855 ms. 
+Relative difference:            9.66644e-14
+Measured bandwidth:             172.507 GB/s
+Testing reduction algorithm 8  on a DOUBLE vector of size:  40000000
+CPU reduction:            2.00014e+07 52.255 ms. 
+GPU reduction:            2.00014e+07 0.838 ms. 
+Relative difference:            9.62919e-14
+Measured bandwidth:             381.862 GB/s
+Testing reduction algorithm 9  on a DOUBLE vector of size:  40000000
+CPU reduction:            2.00025e+07 51.462 ms. 
+GPU reduction:            2.00025e+07 0.833 ms. 
+Relative difference:            1.4024e-13
+Measured bandwidth:             384.154 GB/s
+Testing reduction algorithm 10  on a DOUBLE vector of size:  40000000
+CPU reduction:            1.99958e+07 52.503 ms. 
+GPU reduction:            1.99958e+07 0.847 ms. 
+Relative difference:            2.99949e-14
+Measured bandwidth:             377.804 GB/s
+Testing reduction algorithm 0  on a DOUBLE vector of size:  100000000
+CPU reduction:            4.99965e+07 129.559 ms. 
+GPU reduction:            4.99965e+07 8.568 ms. 
+Relative difference:            4.724e-14
+Measured bandwidth:             93.3707 GB/s
+Testing reduction algorithm 1  on a DOUBLE vector of size:  100000000
+CPU reduction:            4.99999e+07 131.661 ms. 
+GPU reduction:            4.99999e+07 8.399 ms. 
+Relative difference:            2.32607e-13
+Measured bandwidth:             95.2494 GB/s
+Testing reduction algorithm 2  on a DOUBLE vector of size:  100000000
+CPU reduction:            5.00025e+07 129.679 ms. 
+GPU reduction:            5.00025e+07 6.914 ms. 
+Relative difference:            3.31236e-13
+Measured bandwidth:             115.707 GB/s
+Testing reduction algorithm 3  on a DOUBLE vector of size:  100000000
+CPU reduction:            5.00011e+07 129.055 ms. 
+GPU reduction:            5.00011e+07 6.616 ms. 
+Relative difference:            2.09208e-13
+Measured bandwidth:             120.919 GB/s
+Testing reduction algorithm 4  on a DOUBLE vector of size:  100000000
+CPU reduction:            5.00004e+07 130.503 ms. 
+GPU reduction:            5.00004e+07 7.14 ms. 
+Relative difference:            2.01909e-13
+Measured bandwidth:             112.045 GB/s
+Testing reduction algorithm 5  on a DOUBLE vector of size:  100000000
+CPU reduction:            4.99955e+07 129.147 ms. 
+GPU reduction:            4.99955e+07 4.853 ms. 
+Relative difference:            1.55284e-13
+Measured bandwidth:             164.846 GB/s
+Testing reduction algorithm 6  on a DOUBLE vector of size:  100000000
+CPU reduction:            4.99993e+07 129.673 ms. 
+GPU reduction:            4.99993e+07 4.85 ms. 
+Relative difference:            3.23807e-13
+Measured bandwidth:             164.948 GB/s
+Testing reduction algorithm 7  on a DOUBLE vector of size:  100000000
+CPU reduction:            5.00046e+07 130.2 ms. 
+GPU reduction:            5.00046e+07 4.569 ms. 
+Relative difference:            3.55211e-13
+Measured bandwidth:             175.093 GB/s
+Testing reduction algorithm 8  on a DOUBLE vector of size:  100000000
+CPU reduction:            5.00059e+07 130.697 ms. 
+GPU reduction:            5.00059e+07 2.042 ms. 
+Relative difference:            8.85024e-14
+Measured bandwidth:             391.773 GB/s
+Testing reduction algorithm 9  on a DOUBLE vector of size:  100000000
+CPU reduction:            5.00007e+07 128.182 ms. 
+GPU reduction:            5.00007e+07 2.015 ms. 
+Relative difference:            2.6479e-13
+Measured bandwidth:             397.022 GB/s
+Testing reduction algorithm 10  on a DOUBLE vector of size:  100000000
+CPU reduction:            4.99995e+07 130.076 ms. 
+GPU reduction:            4.99995e+07 2.019 ms. 
+Relative difference:            1.52887e-13
+Measured bandwidth:             396.236 GB/s
+Testing reduction algorithm 0  on a DOUBLE vector of size:  400000000
+CPU reduction:            2.00007e+08 515.241 ms. 
+GPU reduction:            2.00007e+08 33.579 ms. 
+Relative difference:            6.85428e-14
+Measured bandwidth:             95.2977 GB/s
+Testing reduction algorithm 1  on a DOUBLE vector of size:  400000000
+CPU reduction:            2.00007e+08 512.062 ms. 
+GPU reduction:            2.00007e+08 33.415 ms. 
+Relative difference:            5.58475e-13
+Measured bandwidth:             95.7654 GB/s
+Testing reduction algorithm 2  on a DOUBLE vector of size:  400000000
+CPU reduction:            1.99998e+08 521.532 ms. 
+GPU reduction:            1.99998e+08 27.446 ms. 
+Relative difference:            6.90081e-13
+Measured bandwidth:             116.593 GB/s
+Testing reduction algorithm 3  on a DOUBLE vector of size:  400000000
+CPU reduction:            2e+08 524.226 ms. 
+GPU reduction:            2e+08 26.333 ms. 
+Relative difference:            3.38256e-13
+Measured bandwidth:             121.521 GB/s
+Testing reduction algorithm 4  on a DOUBLE vector of size:  400000000
+CPU reduction:            1.99994e+08 515.213 ms. 
+GPU reduction:            1.99994e+08 28.454 ms. 
+Relative difference:            3.3022e-13
+Measured bandwidth:             112.462 GB/s
+Testing reduction algorithm 5  on a DOUBLE vector of size:  400000000
+CPU reduction:            2.00001e+08 523.216 ms. 
+GPU reduction:            2.00001e+08 19.279 ms. 
+Relative difference:            8.0764e-14
+Measured bandwidth:             165.984 GB/s
+Testing reduction algorithm 6  on a DOUBLE vector of size:  400000000
+CPU reduction:            1.99995e+08 518.973 ms. 
+GPU reduction:            1.99995e+08 19.288 ms. 
+Relative difference:            7.66237e-13
+Measured bandwidth:             165.906 GB/s
+Testing reduction algorithm 7  on a DOUBLE vector of size:  400000000
+CPU reduction:            1.99986e+08 518.248 ms. 
+GPU reduction:            1.99986e+08 18.226 ms. 
+Relative difference:            6.43776e-14
+Measured bandwidth:             175.573 GB/s
+Testing reduction algorithm 8  on a DOUBLE vector of size:  400000000
+CPU reduction:            2.00004e+08 516.566 ms. 
+GPU reduction:            2.00004e+08 7.929 ms. 
+Relative difference:            4.45239e-13
+Measured bandwidth:             403.582 GB/s
+Testing reduction algorithm 9  on a DOUBLE vector of size:  400000000
+CPU reduction:            1.99994e+08 523.272 ms. 
+GPU reduction:            1.99994e+08 7.918 ms. 
+Relative difference:            9.51171e-13
+Measured bandwidth:             404.142 GB/s
+Testing reduction algorithm 10  on a DOUBLE vector of size:  400000000
+CPU reduction:            2.00002e+08 518.102 ms. 
+GPU reduction:            2.00002e+08 7.924 ms. 
+Relative difference:            8.83034e-13
+Measured bandwidth:             403.836 GB/s

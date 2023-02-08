@@ -1,0 +1,5 @@
+cuda_add_executable( matrix_vector_1thread  01-matrix_vector_1thread.cu )
+cuda_add_executable( matrix_vector_1d_block 02-matrix_vector_1d_block.cu)
+cuda_add_executable( matrix_vector_2d_block 03-matrix_vector_2d_block.cu)
+cuda_add_executable( matrix_vector_cublas 04-matrix_vector_cublas.cu)	
+CUDA_ADD_CUBLAS_TO_TARGET(matrix_vector_cublas)

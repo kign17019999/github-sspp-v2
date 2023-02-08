@@ -1,0 +1,1 @@
+/apps/software/GCCcore/8.3.0/bin/c++  -O3  -rdynamic CMakeFiles/reduction_v4.dir/reduction_v4_generated_reduction_v4.cu.o  -o reduction_v4 -Wl,-Bstatic -lcudart_static -Wl,-Bdynamic -lpthread -ldl -lrt 

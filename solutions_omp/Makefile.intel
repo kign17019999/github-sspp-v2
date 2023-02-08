@@ -1,0 +1,35 @@
+#
+#
+#
+
+MMS=matrix_matrix_serial.o wtime.o
+MMB=matrix_matrix_block_42.o wtime.o
+MVS=matrix_vector_serial.o wtime.o
+MVU=matrix_vector_unroll_8.o wtime.o
+SRT=sorting.o wtime.o
+MA=matrix_add.o wtime.o
+LFLAGS=-qopenmp
+CFLAGS=-O3 -qopenmp 
+
+
+all: wtime.o matrix_matrix_serial matrix_matrix_block_42 matrix_vector_serial \
+     matrix_vector_unroll_8 matrix_add sorting
+
+matrix_matrix_serial: $(MMS)
+	$(CC) $(LFLAGS) -o$@ $(MMS)
+matrix_matrix_block_42: $(MMB)
+	$(CC) $(LFLAGS) -o$@ $(MMB)
+matrix_vector_serial: $(MVS)
+	$(CC) $(LFLAGS) -o$@ $(MVS)
+matrix_vector_unroll_8: $(MVU)
+	$(CC) $(LFLAGS) -o$@ $(MVU)
+matrix_add: $(MA)
+	$(CC) $(LFLAGS) -o$@ $(MA)
+sorting: $(SRT)
+	$(CC) $(LFLAGS) -o$@ $(SRT)
+
+clean:
+	/bin/rm -fr *.o
+
+.c.o:
+	$(CC) $(CFLAGS) -c -o$@ $< 

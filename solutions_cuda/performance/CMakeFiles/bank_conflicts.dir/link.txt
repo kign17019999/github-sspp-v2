@@ -1,0 +1,1 @@
+/apps/software/GCCcore/8.3.0/bin/c++  -O3  -rdynamic CMakeFiles/bank_conflicts.dir/bank_conflicts_generated_03-bank_conflicts.cu.o  -o bank_conflicts -Wl,-Bstatic -lcudart_static -Wl,-Bdynamic -lpthread -ldl -lrt 

@@ -1,0 +1,1 @@
+/apps/software/GCCcore/8.3.0/bin/c++  -O3  -rdynamic CMakeFiles/hello_world.dir/hello_world_generated_01-hello_world.cu.o  -o hello_world -Wl,-Bstatic -lcudart_static -Wl,-Bdynamic -lpthread -ldl -lrt 
