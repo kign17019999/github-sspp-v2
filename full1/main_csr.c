@@ -14,7 +14,6 @@ int main(int argc, char *argv[]) {
   int ret_code = read_csr_matrix(matrix_file, &matrix);
   if (ret_code != 0) {
     printf("Failed to read matrix file\n");
-    printf("here %d\n", ret_code);
     return ret_code;
   }
 

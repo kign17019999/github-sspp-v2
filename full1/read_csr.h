@@ -4,6 +4,23 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+enum MatrixType {
+  COORDINATE,
+  ARRAY
+};
+
+enum MatrixFormat {
+  GENERAL,
+  SYMMETRIC
+};
+
+enum MatrixValueType {
+  INT,
+  REAL,
+  COMPLEX,
+  PATTERN
+};
+
 struct csr_matrix {
   int rows;
   int cols;
