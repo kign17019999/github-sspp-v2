@@ -1,9 +1,14 @@
 %%MatrixMarket matrix array real symmetric
-5 5 6
-1 2
-1 1 1.0
-2 2 2.0
-3 3 3.0
-4 4 4.0
-5 5 5.0
-5 5 5.0
+% This is an example of a MatrixMarket matrix file
+% The matrix is in array format, with real values, and in symmetric format
+% The matrix is a 3x3 matrix with the following values:
+% 1 2 3
+% 2 4 5
+% 3 5 6
+3 3 6
+1
+2
+4
+5
+6
+3

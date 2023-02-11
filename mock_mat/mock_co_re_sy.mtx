@@ -1,17 +1,15 @@
-%%MatrixMarket matrix coordinate real general
+%%MatrixMarket matrix coordinate real symmetric
 % This is an example of a MatrixMarket matrix file
-% The matrix is in coordinate format, with real values, and in general format
+% The matrix is in coordinate format, with real values, and in symmetric format
 % The matrix is a 3x3 matrix with the following values:
 % (1,1) 1
 % (2,2) 2
 % (3,3) 3
 % (1,2) 4
 % (2,3) 5
-% (3,1) 6
-5 3 3
+4 3 3
 1 1 1.0
 2 2 2.0
 3 3 3.0
 1 2 4.0
 2 3 5.0
-3 1 6.0

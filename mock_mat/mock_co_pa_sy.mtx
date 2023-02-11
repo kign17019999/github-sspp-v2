@@ -1,8 +1,15 @@
 %%MatrixMarket matrix coordinate pattern symmetric
-5 5 6
+% This is an example of a MatrixMarket matrix file
+% The matrix is in coordinate format, with pattern only (no values), and in symmetric format
+% The matrix is a 3x3 matrix with the following values:
+% (1,1)
+% (2,2)
+% (3,3)
+% (1,2)
+% (2,3)
+5 3 3
 1 1
 2 2
 3 3
-4 4
-5 5
-5 5
+1 2
+2 3
