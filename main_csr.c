@@ -2,13 +2,16 @@
 #include "read_csr.h"
 
 int main(int argc, char *argv[]) {
-  if (argc != 2) {
+  char* matrix_file = "matrices/cage4.mtx"; // set default file name
+  if (argc > 2) {
     printf("Usage: main <matrix_file>\n");
     return -1;
+  } else if (argc == 2) {
+    matrix_file = argv[1];
   }
 
   struct csr_matrix matrix;
-  int ret_code = read_csr_matrix(argv[1], &matrix);
+  int ret_code = read_csr_matrix(matrix_file, &matrix);
   if (ret_code != 0) {
     printf("Failed to read matrix file\n");
     printf("here %d\n", ret_code);
