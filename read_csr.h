@@ -18,7 +18,7 @@ enum MatrixValueType {
   INT,
   REAL,
   COMPLEX,
-  BINARY
+  PATTERN
 };
 
 struct csr_matrix {

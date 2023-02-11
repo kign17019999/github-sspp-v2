@@ -1,0 +1,42 @@
+fgets = 1 1 .75
+
+a0 = 1 2
+here fclose at type = coordinate
+Failed to read matrix file
+here -1
+[s388240@crescent-login2 github-sspp-v2]$ gcc main.c read_csr.c mmio.c
+[s388240@crescent-login2 github-sspp-v2]$ ./a.out local_matrices/cage4.mtx
+rows=9, cols=9, nnz=49
+Matrix dimensions: 9 x 9
+Number of non-zero elements: 49
+CSR representation:
+row_ptr: 0 39 39 39 40 45 46 47 48 49
+col_idx: 0 0 0 0 0 1 1 1 1 1 2 2 2 2 2 3 3 3 3 3 4 4 4 4 4 4 5 5 5 5 5 5 6 6 6 6 6 6 7 7 7 7 7 7 8 8 8 8 8
+val: 0.8 0.1 0.1 0.0 0.0 0.1 0.7 0.1 0.0 0.0 0.1 0.7 0.1 0.0 0.0 0.1 0.1 0.7 0.0 0.0 0.1 0.1 0.5 0.1 0.1 0.1 0.1 0.1 0.1 0.4 0.1 0.1 0.1 0.1 0.1 0.5 0.1 0.1 0.1 0.1 0.1 0.1 0.5 0.1 0.2 0.2 0.2 0.2 0.2
+[s388240@crescent-login2 github-sspp-v2]$ gcc main.c read_csr.c mmio.c
+[s388240@crescent-login2 github-sspp-v2]$ ./a.out local_matrices/cage4.mtx
+rows=9, cols=9, nnz=49
+Matrix dimensions: 9 x 9
+Number of non-zero elements: 49
+CSR representation:
+row_ptr: 0 39 39 39 40 45 46 47 48 49
+col_idx: 0 0 0 0 0 1 1 1 1 1 2 2 2 2 2 3 3 3 3 3 4 4 4 4 4 4 5 5 5 5 5 5 6 6 6 6 6 6 7 7 7 7 7 7 8 8 8 8 8
+val: 0.750 0.075 0.092 0.038 0.046 0.137 0.688 0.092 0.038 0.046 0.113 0.667 0.137 0.046 0.038 0.113 0.075 0.729 0.038 0.046 0.137 0.075 0.538 0.075 0.092 0.083 0.113 0.092 0.137 0.446 0.137 0.075 0.075 0.137 0.113 0.471 0.113 0.092 0.113 0.092 0.075 0.092 0.546 0.083 0.250 0.150 0.183 0.250 0.167
+[s388240@crescent-login2 github-sspp-v2]$ gcc main.c read_csr.c mmio.c
+read_csr.c: In function âread_csr_matrixâ:
+read_csr.c:94:7: error: redefinition of âcurr_rowâ
+   int curr_row = 0;
+       ^~~~~~~~
+read_csr.c:56:10: note: previous definition of âcurr_rowâ was here
+   int i, curr_row = 1;
+          ^~~~~~~~
+[s388240@crescent-login2 github-sspp-v2]$ gcc main.c read_csr.c mmio.c
+[s388240@crescent-login2 github-sspp-v2]$ ./a.out local_matrices/cage4.mtx
+rows=9, cols=9, nnz=49
+Matrix dimensions: 9 x 9
+Number of non-zero elements: 49
+CSR representation:
+row_ptr: 39 39 39 40 45 46 47 48 49 49
+col_idx: 0 0 0 0 0 1 1 1 1 1 2 2 2 2 2 3 3 3 3 3 4 4 4 4 4 4 5 5 5 5 5 5 6 6 6 6 6 6 7 7 7 7 7 7 8 8 8 8 8
+val: 0.750 0.075 0.092 0.038 0.046 0.137 0.688 0.092 0.038 0.046 0.113 0.667 0.137 0.046 0.038 0.113 0.075 0.729 0.038 0.046 0.137 0.075 0.538 0.075 0.092 0.083 0.113 0.092 0.137 0.446 0.137 0.075 0.075 0.137 0.113 0.471 0.113 0.092 0.113 0.092 0.075 0.092 0.546 0.083 0.250 0.150 0.183 0.250 0.167
+[s388240@crescent-login2 github-sspp-v2]$

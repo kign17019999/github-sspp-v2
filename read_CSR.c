@@ -3,29 +3,21 @@
 #include "mmio.h"
 
 struct csr_matrix {
-  int rows;
-  int cols;
-  int nnz;
-  int *row_ptr;
-  int *col_idx;
+  int rows, cols, nnz;
+  int *row_ptr, *col_idx;
   double *val;
 };
 
 enum MatrixType {
-  COORDINATE,
-  ARRAY
+  COORDINATE, ARRAY
 };
 
 enum MatrixFormat {
-  GENERAL,
-  SYMMETRIC
+  GENERAL, SYMMETRIC
 };
 
 enum MatrixDataType {
-  INT,
-  REAL,
-  COMPLEX,
-  PATTERN
+  INT, REAL, COMPLEX, PATTERN
 };
 
 int read_csr_matrix(char *filename, struct csr_matrix *matrix) {
@@ -48,7 +40,7 @@ int read_csr_matrix(char *filename, struct csr_matrix *matrix) {
     return ret_code;
   }
 
-  int i, curr_row = 1;
+  int i;
   matrix->rows = rows;
   matrix->cols = cols;
   matrix->nnz = nnz;
@@ -86,6 +78,8 @@ int read_csr_matrix(char *filename, struct csr_matrix *matrix) {
 
   int row, col;
   double val;
+  int *row_counts = (int *) calloc(rows, sizeof(int));
+
   for (i = 0; i < nnz; i++) {
     if (type == COORDINATE) {
       if (fscanf(f, "%d %d", &row, &col) != 2) {
@@ -95,17 +89,13 @@ int read_csr_matrix(char *filename, struct csr_matrix *matrix) {
       row--;
       col--;
       if (format == SYMMETRIC) {
-        row = col;
-      } else {
-        if (fscanf(f, "%d", &row) != 1) {
-          fclose(f);
-          return -1;
+        if (row > col) {
+          int tmp = row;
+          row = col;
+          col = tmp;
         }
-        row--;
       }
     }
-
-    matrix->col_idx[i] = col;
 
     if (data_type == PATTERN) {
       val = 1.0;
@@ -115,58 +105,64 @@ int read_csr_matrix(char *filename, struct csr_matrix *matrix) {
         return -1;
       }
     }
-    matrix->val[i] = val;
 
-    if (row != curr_row - 1) {
-      int j;
-      for (j = curr_row; j <= row; j++) {
-        matrix->row_ptr[j] = i;
-      }
-      curr_row = row + 1;
-    }
+    row_counts[row]++;
   }
 
-  matrix->row_ptr[rows] = nnz;
+  for (i = 0; i < rows; i++) {
+    matrix->row_ptr[i + 1] = matrix->row_ptr[i] + row_counts[i];
+  }
 
-  fclose(f);
-  return 0;
-}
+  for (i = 0; i < rows; i++) {
+    row_counts[i] = 0;
+  }
 
-#ifdef READ_CSR_MAIN
-int main(int argc, char *argv[]) {
-  if (argc != 2) {
-    printf("Usage: read_csr <matrix_file>\n");
+  rewind(f);
+
+  if (mm_read_banner(f, &matcode) != 0) {
+    fclose(f);
     return -1;
   }
 
-  struct csr_matrix matrix;
-  int ret_code = read_csr_matrix(argv[1], &matrix);
-  if (ret_code != 0) {
-    printf("Failed to read matrix file\n");
+  if ((ret_code = mm_read_mtx_crd_size(f, &rows, &cols, &nnz)) != 0) {
+    fclose(f);
     return ret_code;
   }
 
-  printf("Matrix dimensions: %d x %d\n", matrix.rows, matrix.cols);
-  printf("Number of non-zero elements: %d\n", matrix.nnz);
-  printf("CSR representation:\n");
-  printf("row_ptr: ");
-  int i;
-  for (i = 0; i < matrix.rows + 1; i++) {
-    printf("%d ", matrix.row_ptr[i]);
-  }
-  printf("\ncol_idx: ");
-  for (i = 0; i < matrix.nnz; i++) {
-    printf("%d ", matrix.col_idx[i]);
-  }
-  printf("\nval: ");
-  for (i = 0; i < matrix.nnz; i++) {
-    printf("%.1lf ", matrix.val[i]);
-  }
-  printf("\n");
+  for (i = 0; i < nnz; i++) {
+    if (type == COORDINATE) {
+      if (fscanf(f, "%d %d", &row, &col) != 2) {
+        fclose(f);
+        return -1;
+      }
+      row--;
+      col--;
+      if (format == SYMMETRIC) {
+        if (row > col) {
+          int tmp = row;
+          row = col;
+          col = tmp;
+        }
+      }
+    }
 
-  free(matrix.row_ptr);
-  free(matrix.col_idx);
-  free(matrix.val);
+    if (data_type == PATTERN) {
+      val = 1.0;
+    } else {
+      if (fscanf(f, "%lf", &val) != 1) {
+        fclose(f);
+        return -1;
+      }
+    }
+
+    int index = matrix->row_ptr[row] + row_counts[row];
+    matrix->col_idx[index] = col;
+    matrix->val[index] = val;
+    row_counts[row]++;
+  }
+
+  fclose(f);
+  free(row_counts);
   return 0;
 }
-#endif
+
