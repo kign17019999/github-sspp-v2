@@ -1,0 +1,17 @@
+%%MatrixMarket matrix coordinate integer general
+% This is an example of a MatrixMarket matrix file
+% The matrix is in coordinate format, with real values, and in general format
+% The matrix is a 3x3 matrix with the following values:
+% (1,1) 1
+% (2,2) 2
+% (3,3) 3
+% (1,2) 4
+% (2,3) 5
+% (3,1) 6
+3 3 6
+1 1 1
+2 2 2
+3 3 3
+1 2 4
+2 3 5
+3 1 6

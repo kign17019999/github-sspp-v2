@@ -1,0 +1,15 @@
+%%MatrixMarket matrix coordinate integer symmetric
+% This is an example of a MatrixMarket matrix file
+% The matrix is in coordinate format, with integer values, and in symmetric format
+% The matrix is a 3x3 matrix with the following values:
+% (1,1) 1
+% (2,2) 2
+% (3,3) 3
+% (1,2) 4
+% (2,3) 5
+3 3 5
+1 1 1
+2 2 2
+3 3 3
+1 2 4
+2 3 5

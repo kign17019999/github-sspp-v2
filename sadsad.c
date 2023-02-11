@@ -83,6 +83,7 @@ int read_csr_matrix(char *filename, struct csr_matrix *matrix) {
   for (i = 0; i < nnz; i++) {
     if (type == COORDINATE) {
       if (fscanf(f, "%d %d", &row, &col) != 2) {
+      if (fscanf(f, "%d %d", &row, &col) != 2) {
         fclose(f);
         return -1;
       }
@@ -165,4 +166,3 @@ int read_csr_matrix(char *filename, struct csr_matrix *matrix) {
   free(row_counts);
   return 0;
 }
-
