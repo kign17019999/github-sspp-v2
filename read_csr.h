@@ -16,4 +16,3 @@ struct csr_matrix {
 int read_csr_matrix(const char *file_name, struct csr_matrix *matrix);
 
 #endif
-

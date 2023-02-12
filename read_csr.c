@@ -1,30 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "mmio.h"
+#include "read_csr.h"
 
-struct csr_matrix {
-  int rows, cols, nnz;
-  int *row_ptr, *col_idx;
-  double *val;
-};
-
-enum MatrixType {
-  COORDINATE, ARRAY
-};
-
-enum MatrixFormat {
-  GENERAL, SYMMETRIC
-};
-
-enum MatrixDataType {
-  INT, REAL, COMPLEX, PATTERN
-};
-
-int read_csr_matrix(char *filename, struct csr_matrix *matrix) {
+int read_csr_matrix(const char *file_name, struct csr_matrix *matrix) {
   MM_typecode matcode;
   int ret_code;
 
-  FILE *f = fopen(filename, "r");
+  FILE *f = fopen(file_name, "r");
   if (!f) {
     return -1;
   }
@@ -51,53 +34,19 @@ int read_csr_matrix(char *filename, struct csr_matrix *matrix) {
 
   matrix->row_ptr[0] = 0;
 
-  enum MatrixType type;
-  if (mm_is_coordinate(matcode)) {
-    type = COORDINATE;
-  } else {
-    type = ARRAY;
-  }
-
-  enum MatrixFormat format;
-  if (mm_is_symmetric(matcode)) {
-    format = SYMMETRIC;
-  } else {
-    format = GENERAL;
-  }
-
-  enum MatrixDataType data_type;
-  if (mm_is_pattern(matcode)) {
-    data_type = PATTERN;
-  } else if (mm_is_real(matcode)) {
-    data_type = REAL;
-  } else if (mm_is_complex(matcode)) {
-    data_type = COMPLEX;
-  } else if (mm_is_integer(matcode)) {
-    data_type = INT;
-  }
+  int *row_counts = (int *) calloc(rows, sizeof(int));
 
   int row, col;
   double val;
-  int *row_counts = (int *) calloc(rows, sizeof(int));
-
   for (i = 0; i < nnz; i++) {
-    if (type == COORDINATE) {
-      if (fscanf(f, "%d %d", &row, &col) != 2) {
-        fclose(f);
-        return -1;
-      }
-      row--;
-      col--;
-      if (format == SYMMETRIC) {
-        if (row > col) {
-          int tmp = row;
-          row = col;
-          col = tmp;
-        }
-      }
+    if (fscanf(f, "%d %d", &row, &col) != 2) {
+      fclose(f);
+      return -1;
     }
+    row--;
+    col--;
 
-    if (data_type == PATTERN) {
+    if (mm_is_pattern(matcode)) {
       val = 1.0;
     } else {
       if (fscanf(f, "%lf", &val) != 1) {
@@ -130,23 +79,14 @@ int read_csr_matrix(char *filename, struct csr_matrix *matrix) {
   }
 
   for (i = 0; i < nnz; i++) {
-    if (type == COORDINATE) {
-      if (fscanf(f, "%d %d", &row, &col) != 2) {
-        fclose(f);
-        return -1;
-      }
-      row--;
-      col--;
-      if (format == SYMMETRIC) {
-        if (row > col) {
-          int tmp = row;
-          row = col;
-          col = tmp;
-        }
-      }
+    if (fscanf(f, "%d %d", &row, &col) != 2) {
+      fclose(f);
+      return -1;
     }
+    row--;
+    col--;
 
-    if (data_type == PATTERN) {
+    if(mm_is_pattern(matcode)) {
       val = 1.0;
     } else {
       if (fscanf(f, "%lf", &val) != 1) {
@@ -154,7 +94,6 @@ int read_csr_matrix(char *filename, struct csr_matrix *matrix) {
         return -1;
       }
     }
-
     int index = matrix->row_ptr[row] + row_counts[row];
     matrix->col_idx[index] = col;
     matrix->val[index] = val;
