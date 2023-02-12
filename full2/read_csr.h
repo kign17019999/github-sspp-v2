@@ -5,12 +5,12 @@
 #include <stdlib.h>
 
 struct csr_matrix {
-  int M;
-  int N;
-  int NNZ;
-  int *IRP;
-  int *JA;
-  double *AZ;
+  int rows;
+  int cols;
+  int nnz;
+  int *row_ptr;
+  int *col_idx;
+  double *val;
 };
 
 int read_csr_matrix(const char *file_name, struct csr_matrix *matrix);

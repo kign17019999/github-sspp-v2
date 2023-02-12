@@ -16,28 +16,28 @@ int main(int argc, char *argv[]) {
     printf("Failed to read matrix file\n");
     return ret_code;
   }
-
-  printf("Matrix dimensions M x N: %d x %d\n", matrix.rows, matrix.cols);
-  printf("Number of non-zero elements: %d\n", matrix.nnz);
+  
   printf("ELLPACK representation:\n");
-  printf("max_nnz_per_row: %d\n", matrix.max_nnz_per_row);
-  printf("col_idx (IA): ");
+  printf("M: %d\nN: %d\n", matrix.M, matrix.N);
+  printf("NNZ: %d\n", matrix.NNZ);
+  printf("MAXNZ: %d\n", matrix.MAXNZ);
+  printf("JA: ");
   int i, j;
-  for (i = 0; i < matrix.rows; i++) {
-    for (j = 0; j < matrix.max_nnz_per_row; j++) {
-      printf("%d ", matrix.col_idx[i * matrix.max_nnz_per_row + j]);
+  for (i = 0; i < matrix.M; i++) {
+    for (j = 0; j < matrix.MAXNZ; j++) {
+      printf("%d ", matrix.JA[i * matrix.MAXNZ + j]);
     }
     printf("\n");
   }
-  printf("val (A): ");
-  for (i = 0; i < matrix.rows; i++) {
-    for (j = 0; j < matrix.max_nnz_per_row; j++) {
-      printf("%.3lf ", matrix.val[i * matrix.max_nnz_per_row + j]);
+  printf("AZ: ");
+  for (i = 0; i < matrix.M; i++) {
+    for (j = 0; j < matrix.MAXNZ; j++) {
+      printf("%.3lf ", matrix.AZ[i * matrix.MAXNZ + j]);
     }
     printf("\n");
   }
 
-  free(matrix.col_idx);
-  free(matrix.val);
+  free(matrix.JA);
+  free(matrix.AZ);
   return 0;
 }

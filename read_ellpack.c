@@ -4,9 +4,9 @@
 #include "read_ellpack.h"
 
 // struct ellpack_matrix {
-//   int rows, cols, nnz, max_nnz_per_row;
-//   int *col_idx;
-//   double *val;
+//   int M, N, NNZ, MAXNZ;
+//   int *JA;
+//   double *AZ;
 // };
 
 int read_ellpack_matrix(const char *file_name, struct ellpack_matrix *matrix) {
@@ -23,23 +23,23 @@ int read_ellpack_matrix(const char *file_name, struct ellpack_matrix *matrix) {
     return -1;
   }
 
-  int rows, cols, nnz;
-  if ((ret_code = mm_read_mtx_crd_size(f, &rows, &cols, &nnz)) != 0) {
+  int M, N, NNZ;
+  if ((ret_code = mm_read_mtx_crd_size(f, &M, &N, &NNZ)) != 0) {
     fclose(f);
     return ret_code;
   }
 
   int i, j;
-  matrix->rows = rows;
-  matrix->cols = cols;
-  matrix->nnz = nnz;
+  matrix->M = M;
+  matrix->N = N;
+  matrix->NNZ = NNZ;
 
   int row, col;
-  double val;
-  int *row_counts = (int *) calloc(rows, sizeof(int));
+  double AZ;
+  int *row_counts = (int *) calloc(M, sizeof(int));
 
-  for (i = 0; i < nnz; i++) {
-    if (fscanf(f, "%d %d %lf", &row, &col, &val) != 3) {
+  for (i = 0; i < NNZ; i++) {
+    if (fscanf(f, "%d %d %lf", &row, &col, &AZ) != 3) {
       fclose(f);
       return -1;
     }
@@ -48,19 +48,19 @@ int read_ellpack_matrix(const char *file_name, struct ellpack_matrix *matrix) {
     row_counts[row]++;
   }
 
-  matrix->max_nnz_per_row = 0;
-  for (i = 0; i < rows; i++) {
-    if (row_counts[i] > matrix->max_nnz_per_row) {
-      matrix->max_nnz_per_row = row_counts[i];
+  matrix->MAXNZ = 0;
+  for (i = 0; i < M; i++) {
+    if (row_counts[i] > matrix->MAXNZ) {
+      matrix->MAXNZ = row_counts[i];
     }
   }
 
-  matrix->col_idx = (int *) malloc(rows * matrix->max_nnz_per_row * sizeof(int));
-  matrix->val = (double *) malloc(rows * matrix->max_nnz_per_row * sizeof(double));
+  matrix->JA = (int *) malloc(M * matrix->MAXNZ * sizeof(int));
+  matrix->AZ = (double *) malloc(M * matrix->MAXNZ * sizeof(double));
 
-  for (i = 0; i < rows; i++) {
-    for (j = 0; j < matrix->max_nnz_per_row; j++) {
-      matrix->col_idx[i * matrix->max_nnz_per_row + j] = -1;
+  for (i = 0; i < M; i++) {
+    for (j = 0; j < matrix->MAXNZ; j++) {
+      matrix->JA[i * matrix->MAXNZ + j] = -1;
     }
   }
 
@@ -71,24 +71,24 @@ int read_ellpack_matrix(const char *file_name, struct ellpack_matrix *matrix) {
     return -1;
   }
 
-  if ((ret_code = mm_read_mtx_crd_size(f, &rows, &cols, &nnz)) != 0) {
+  if ((ret_code = mm_read_mtx_crd_size(f, &M, &N, &NNZ)) != 0) {
     fclose(f);
     return ret_code;
   }
 
-  for (i = 0; i < nnz; i++) {
-    if (fscanf(f, "%d %d %lf", &row, &col, &val) != 3) {
+  for (i = 0; i < NNZ; i++) {
+    if (fscanf(f, "%d %d %lf", &row, &col, &AZ) != 3) {
       fclose(f);
       return -1;
     }
     row--;
     col--;
 
-    int index = row * matrix->max_nnz_per_row;
-    for (j = 0; j < matrix->max_nnz_per_row; j++) {
-      if (matrix->col_idx[index + j] == -1) {
-        matrix->col_idx[index + j] = col;
-        matrix->val[index + j] = val;
+    int index = row * matrix->MAXNZ;
+    for (j = 0; j < matrix->MAXNZ; j++) {
+      if (matrix->JA[index + j] == -1) {
+        matrix->JA[index + j] = col;
+        matrix->AZ[index + j] = AZ;
         break;
       }
     }

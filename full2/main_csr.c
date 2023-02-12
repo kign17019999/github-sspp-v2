@@ -17,26 +17,26 @@ int main(int argc, char *argv[]) {
     return ret_code;
   }
 
+  printf("Matrix dimensions M x N: %d x %d\n", matrix.rows, matrix.cols);
+  printf("Number of non-zero elements: %d\n", matrix.nnz);
   printf("CSR representation:\n");
-  printf("M: %d\nN: %d\n", matrix.M, matrix.N);
-  printf("NNZ: %d\n", matrix.NNZ);
-  printf("IRP: ");
+  printf("row_ptr (IRP): ");
   int i;
-  for (i = 0; i < matrix.M + 1; i++) {
-    printf("%d ", matrix.IRP[i]);
+  for (i = 0; i < matrix.rows + 1; i++) {
+    printf("%d ", matrix.row_ptr[i]);
   }
-  printf("\nJA: ");
-  for (i = 0; i < matrix.NNZ; i++) {
-    printf("%d ", matrix.JA[i]);
+  printf("\ncol_idx (JA): ");
+  for (i = 0; i < matrix.nnz; i++) {
+    printf("%d ", matrix.col_idx[i]);
   }
-  printf("\nAZ: ");
-  for (i = 0; i < matrix.NNZ; i++) {
-    printf("%.3lf ", matrix.AZ[i]);
+  printf("\nval (AZ): ");
+  for (i = 0; i < matrix.nnz; i++) {
+    printf("%.3lf ", matrix.val[i]);
   }
   printf("\n");
 
-  free(matrix.IRP);
-  free(matrix.JA);
-  free(matrix.AZ);
+  free(matrix.row_ptr);
+  free(matrix.col_idx);
+  free(matrix.val);
   return 0;
 }
