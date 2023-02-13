@@ -60,6 +60,8 @@ int main(int argc, char** argv)
     printf("Failed to read matrix file\n");
     return ret_code;
   }
+  printELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ, matrix_ellpack.MAXNZ, matrix_ellpack.JA, matrix_ellpack.AZ);
+
   t1 = wtime();
   MatrixVectorELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ, matrix_ellpack.MAXNZ, matrix_ellpack.JA, matrix_ellpack.AZ, x, y);
   t2 = wtime();
