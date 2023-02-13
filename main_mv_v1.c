@@ -27,7 +27,8 @@ int main(int argc, char** argv)
   }
   /* CSR */
   struct csr_matrix matrix_csr;
-  int ret_code = read_csr_matrix(matrix_file, &matrix_csr);
+  int ret_code;
+  ret_code = read_csr_matrix(matrix_file, &matrix_csr);
   if (ret_code != 0) {
     printf("Failed to read matrix file\n");
     return ret_code;
@@ -42,27 +43,28 @@ int main(int argc, char** argv)
     x[row] = 100.0f * ((double) rand()) / RAND_MAX;      
   }
 
-  double t1 = wtime();
+  double t1, t2, tmlt, mflops;
+  t1 = wtime();
   matrixVectorCSR(matrix_csr.M, matrix_csr.N, matrix_csr.IRP, matrix_csr.JA, matrix_csr.AZ, x, y);
-  double t2 = wtime();
-  double tmlt = (t2-t1);
-  double mflops = (2.0e-6)*matrix_csr.NNZ/tmlt;
+  t2 = wtime();
+  tmlt = (t2-t1);
+  mflops = (2.0e-6)*matrix_csr.NNZ/tmlt;
   fprintf(stdout,"[CSR] Matrix-Vector product of size %d x %d with 1 thread: time %lf  MFLOPS %lf \n",
 	  matrix_csr.M,matrix_csr.N,tmlt,mflops);
   /* EBD CSR */
 
   /* ELLPACK */
   struct ellpack_matrix matrix_ellpack;
-  int ret_code = read_ellpack_matrix(matrix_file, &matrix_ellpack);
+  ret_code = read_ellpack_matrix(matrix_file, &matrix_ellpack);
   if (ret_code != 0) {
     printf("Failed to read matrix file\n");
     return ret_code;
   }
-  double t1 = wtime();
+  t1 = wtime();
   MatrixVectorELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ, matrix_ellpack.MAXNZ, matrix_ellpack.JA, matrix_ellpack.AZ, x, y);
-  double t2 = wtime();
-  double tmlt = (t2-t1);
-  double mflops = (2.0e-6)*matrix_ellpack.NNZ/tmlt;
+  t2 = wtime();
+  tmlt = (t2-t1);
+  mflops = (2.0e-6)*matrix_ellpack.NNZ/tmlt;
   fprintf(stdout,"[ELL] Matrix-Vector product of size %d x %d with 1 thread: time %lf  MFLOPS %lf \n",
 	  matrix_ellpack.M,matrix_ellpack.N,tmlt,mflops);
   /* EBD ELLPACK */
