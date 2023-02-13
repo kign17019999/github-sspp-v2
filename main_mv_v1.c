@@ -10,24 +10,8 @@
 #include "wtime.h"
 #include "read_csr.h"
 
-// Matrix dimensions.
-const int ROWS = 4096;
-const int COLS = 4096;
 
-
-// Simple CPU implementation of matrix-vector product
-void MatrixVector(int M, int N, const int* IRP, const int* JA, const double* AZ, const double* x, double* restrict y) 
-{
-  int row, col, idx;
-  double t;
-  for (row = 0; row < M; row++) {
-      double t = 0;
-      for (col = IRP[row]; col < IRP[row+1]; col++) {
-          t += AZ[col] * x[JA[col]];
-      }
-      y[row] = t;
-  }
-}
+void MatrixVector(int M, int N, const int* IRP, const int* JA, const double* AZ, const double* x, double* restrict y);
 
 int main(int argc, char** argv) 
 {
@@ -44,39 +28,8 @@ int main(int argc, char** argv)
     printf("Failed to read matrix file\n");
     return ret_code;
   }
-  /* print CSR */
-  printf("CSR representation:\n");
-  printf("M: %d\nN: %d\n", matrix.M, matrix.N);
-  printf("NNZ: %d\n", matrix.NNZ);
-  printf("IRP: ");
-  int i;
-  for (i = 0; i < matrix.M + 1; i++) {
-    printf("%d ", matrix.IRP[i]);
-    if(i!=matrix.M-1 && i==5 && matrix.M>11){
-      printf("... ");
-      i=matrix.M-5;
-    }
-  }
-  printf("\nJA: ");
-  for (i = 0; i < matrix.NNZ; i++) {
-    printf("%d ", matrix.JA[i]);
-    if(i!=matrix.NNZ-1 && i==5 && matrix.NNZ>11){
-      printf("... ");
-      i=matrix.NNZ-5;
-    }
-  }
-  printf("\nAZ: ");
-  for (i = 0; i < matrix.NNZ; i++) {
-    printf("%.3lf ", matrix.AZ[i]);
-    if(i!=matrix.NNZ-1 && i==5 && matrix.NNZ>11){
-      printf("... ");
-      i=matrix.NNZ-5;
-    }
-  }
-  printf("\n");
-  /* end print CSR */
-
-
+  printCSR(matrix.M, matrix.N, matrix.NNZ, matrix.IRP, matrix.JA, matrix.AZ);
+  
   double* x = (double*) malloc(sizeof(double)*matrix.M);
   double* y = (double*) malloc(sizeof(double)*matrix.M);
   
@@ -94,11 +47,57 @@ int main(int argc, char** argv)
   fprintf(stdout,"Matrix-Vector product of size %d x %d with 1 thread: time %lf  MFLOPS %lf \n",
 	  matrix.M,matrix.N,tmlt,mflops);
   
-  
   free(matrix.IRP);
   free(matrix.JA);
   free(matrix.AZ);
   free(x);
   free(y);
   return 0;
+}
+
+void MatrixVector(int M, int N, const int* IRP, const int* JA, const double* AZ, const double* x, double* restrict y) 
+{
+  int row, col, idx;
+  double t;
+  for (row = 0; row < M; row++) {
+      double t = 0;
+      for (col = IRP[row]; col < IRP[row+1]; col++) {
+          t += AZ[col] * x[JA[col]];
+      }
+      y[row] = t;
+  }
+}
+
+void printCSR(int M, int N, int NNZ, const int* IRP, const int* JA, const double* AZ){
+  printf("CSR representation:\n");
+  printf("M: %d\nN: %d\n", M, N);
+  printf("NNZ: %d\n", matrix.NNZ);
+  printf("IRP: ");
+  int i;
+  for (i = 0; i < M + 1; i++) {
+    printf("%d ", IRP[i]);
+    if(i!=M-1 && i==5 && M>11){
+      printf("... ");
+      i=M-5;
+    }
+  }
+  printf("\nJA: ");
+  for (i = 0; i < NNZ; i++) {
+    printf("%d ", JA[i]);
+    if(i!=NNZ-1 && i==5 && NNZ>11){
+      printf("... ");
+      i=NNZ-5;
+    }
+  }
+  printf("\nAZ: ");
+  for (i = 0; i < NNZ; i++) {
+    printf("%.3lf ", AZ[i]);
+    if(i!=NNZ-1 && i==5 && NNZ>11){
+      printf("... ");
+      i=NNZ-5;
+    }
+  }
+  printf("\n");
+  /* end print CSR */ 
+
 }
