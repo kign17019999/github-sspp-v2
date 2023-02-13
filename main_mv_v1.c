@@ -12,6 +12,7 @@
 
 
 void MatrixVector(int M, int N, const int* IRP, const int* JA, const double* AZ, const double* x, double* restrict y);
+void printCSR(int M, int N, int NNZ, const int* IRP, const int* JA, const double* AZ);
 
 int main(int argc, char** argv) 
 {
