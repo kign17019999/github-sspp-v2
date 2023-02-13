@@ -71,7 +71,7 @@ void MatrixVector(int M, int N, const int* IRP, const int* JA, const double* AZ,
 void printCSR(int M, int N, int NNZ, const int* IRP, const int* JA, const double* AZ){
   printf("CSR representation:\n");
   printf("M: %d\nN: %d\n", M, N);
-  printf("NNZ: %d\n", matrix.NNZ);
+  printf("NNZ: %d\n", NNZ);
   printf("IRP: ");
   int i;
   for (i = 0; i < M + 1; i++) {
