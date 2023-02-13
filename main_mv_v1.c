@@ -131,7 +131,7 @@ void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA, const 
   double t;
   for (row = 0; row < M; row++) {
       t = 0;
-      for (col = 0; j < MAXNZ; col++) {
+      for (col = 0; col < MAXNZ; col++) {
           if (col >= NNZ || JA[row*MAXNZ+col] == 0) {
             break;
           }
