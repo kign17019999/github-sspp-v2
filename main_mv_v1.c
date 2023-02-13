@@ -45,7 +45,7 @@ int main(int argc, char** argv)
 
   double t1, t2, tmlt, mflops;
   t1 = wtime();
-  matrixVectorCSR(matrix_csr.M, matrix_csr.N, matrix_csr.IRP, matrix_csr.JA, matrix_csr.AZ, x, y);
+  MatrixVectorCSR(matrix_csr.M, matrix_csr.N, matrix_csr.IRP, matrix_csr.JA, matrix_csr.AZ, x, y);
   t2 = wtime();
   tmlt = (t2-t1);
   mflops = (2.0e-6)*matrix_csr.NNZ/tmlt;
