@@ -15,7 +15,7 @@ const int COLS = 4096;
 
 
 // Simple CPU implementation of matrix-vector product
-void MatrixVector(int M, int N, const double* AZ, const double* x, double* restrict y) 
+void MatrixVector(int M, int N, const int* IRP, const int* JA, const double* AZ, const double* x, double* restrict y) 
 {
   int row, col, idx;
   double t;
