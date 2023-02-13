@@ -154,7 +154,7 @@ void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA, const double*
     for (j = 0; j < MAXNZ; j++) {
       printf("%d ", JA[i * MAXNZ + j]);
       if(j!=MAXNZ-1 && j==5 && MAXNZ>11){
-        printf(" ... \n");
+        printf("... ");
         j=MAXNZ-5;
       }
     }
@@ -169,7 +169,7 @@ void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA, const double*
     for (j = 0; j < MAXNZ; j++) {
       printf("%.3lf ", AZ[i * MAXNZ + j]);
       if(j!=MAXNZ-1 && j==5 && MAXNZ>11){
-        printf(" ... \n");
+        printf("... ");
         j=MAXNZ-5;
       }
     }
