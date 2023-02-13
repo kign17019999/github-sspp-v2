@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <omp.h>
 #include "wtime.h"
+#include "read_csr.h"
 
 // Matrix dimensions.
 const int ROWS = 4096;
@@ -76,8 +77,8 @@ int main(int argc, char** argv)
   /* end print CSR */
 
 
-  double* x = (double*) malloc(sizeof(double)*matrix.M, );
-  double* y = (double*) malloc(sizeof(double)*matrix.N, );
+  double* x = (double*) malloc(sizeof(double)*matrix.M);
+  double* y = (double*) malloc(sizeof(double)*matrix.M);
   
   int row;
   for ( row = 0; row < matrix.M; ++row) {
