@@ -43,14 +43,14 @@ int main(int argc, char** argv)
     x[row] = 100.0f * ((double) rand()) / RAND_MAX;      
   }
 
-  double t1, t2, tmlt, mflops;
+  double t1, t2;
   t1 = wtime();
   MatrixVectorCSR(matrix_csr.M, matrix_csr.N, matrix_csr.IRP, matrix_csr.JA, matrix_csr.AZ, x, y);
   t2 = wtime();
-  tmlt = (t2-t1);
-  mflops = (2.0e-6)*matrix_csr.NNZ/tmlt;
+  double tmlt_csr_serial = (t2-t1);
+  double mflops_csr_serial = (2.0e-6)*matrix_csr.NNZ/tmlt;
   fprintf(stdout,"[CSR] Matrix-Vector product of size %d x %d with 1 thread: time %lf  MFLOPS %lf \n",
-	  matrix_csr.M,matrix_csr.N,tmlt,mflops);
+	  matrix_csr.M,matrix_csr.N,tmlt_csr_serial,mflops_csr_serial);
   /* EBD CSR */
 
   /* ELLPACK */
@@ -65,10 +65,10 @@ int main(int argc, char** argv)
   t1 = wtime();
   MatrixVectorELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ, matrix_ellpack.MAXNZ, matrix_ellpack.JA, matrix_ellpack.AZ, x, y);
   t2 = wtime();
-  tmlt = (t2-t1);
-  mflops = (2.0e-6)*matrix_ellpack.NNZ/tmlt;
+  double tmlt_ell_serial = (t2-t1);
+  double mflops_ell_serial = (2.0e-6)*matrix_ellpack.NNZ/tmlt;
   fprintf(stdout,"[ELL] Matrix-Vector product of size %d x %d with 1 thread: time %lf  MFLOPS %lf \n",
-	  matrix_ellpack.M,matrix_ellpack.N,tmlt,mflops);
+	  matrix_ellpack.M,matrix_ellpack.N,tmlt_ell_serial,mflops_ell_serial);
   /* EBD ELLPACK */
 
   
