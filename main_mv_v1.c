@@ -85,7 +85,7 @@ int main(int argc, char** argv)
   }
 
   double t1 = wtime();
-  MatrixVector(matrix.M, matrix.N, matrix.AZ, x, y);
+  MatrixVector(matrix.M, matrix.N, matrix.IRP, matrix.JA, matrix.AZ, x, y);
   double t2 = wtime();
   double tmlt = (t2-t1);
   double mflops = (2.0e-6)*matrix.M*matrix.N/tmlt;
