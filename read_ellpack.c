@@ -3,12 +3,6 @@
 #include "mmio.h"
 #include "read_ellpack.h"
 
-// struct ellpack_matrix {
-//   int M, N, NNZ, MAXNZ;
-//   int *JA;
-//   double *AZ;
-// };
-
 int read_ellpack_matrix(const char *file_name, struct ellpack_matrix *matrix) {
   MM_typecode matcode;
   int ret_code;
