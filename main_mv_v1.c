@@ -33,7 +33,7 @@ int main(int argc, char** argv)
     printf("Failed to read matrix file\n");
     return ret_code;
   }
-  printCSR(matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_csr.IRP, matrix_csr.JA, matrix_csr.AZ);
+  //printCSR(matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_csr.IRP, matrix_csr.JA, matrix_csr.AZ);
   
   double* x = (double*) malloc(sizeof(double)*matrix_csr.M);
   double* y = (double*) malloc(sizeof(double)*matrix_csr.M);
@@ -60,7 +60,7 @@ int main(int argc, char** argv)
     printf("Failed to read matrix file\n");
     return ret_code;
   }
-  printELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ, matrix_ellpack.MAXNZ, matrix_ellpack.JA, matrix_ellpack.AZ);
+  //printELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ, matrix_ellpack.MAXNZ, matrix_ellpack.JA, matrix_ellpack.AZ);
 
   t1 = wtime();
   MatrixVectorELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ, matrix_ellpack.MAXNZ, matrix_ellpack.JA, matrix_ellpack.AZ, x, y);
@@ -148,7 +148,7 @@ void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA, const double*
   printf("M: %d\nN: %d\n", M, N);
   printf("NNZ: %d\n", NNZ);
   printf("MAXNZ: %d\n", MAXNZ);
-  printf("JA: ");
+  printf("JA: \n");
   int i, j;
   for (i = 0; i < M; i++) {
     for (j = 0; j < MAXNZ; j++) {
@@ -164,7 +164,7 @@ void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA, const double*
       i=M-5;
     }
   }
-  printf("AZ: ");
+  printf("AZ: \n");
   for (i = 0; i < M; i++) {
     for (j = 0; j < MAXNZ; j++) {
       printf("%.3lf ", AZ[i * MAXNZ + j]);
