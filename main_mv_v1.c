@@ -153,22 +153,30 @@ void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA, const double*
   for (i = 0; i < M; i++) {
     for (j = 0; j < MAXNZ; j++) {
       printf("%d ", JA[i * MAXNZ + j]);
+      if(j!=MAXNZ-1 && j==5 && MAXNZ>11){
+        printf(" ... \n");
+        j=MAXNZ-5;
+      }
     }
     printf("\n");
-    if(i!=NNZ-1 && i==5 && NNZ>11){
-      printf("... ");
-      i=NNZ-5;
+    if(i!=M-1 && i==5 && M>11){
+      printf(" ... \n");
+      i=M-5;
     }
   }
   printf("AZ: ");
   for (i = 0; i < M; i++) {
     for (j = 0; j < MAXNZ; j++) {
       printf("%.3lf ", AZ[i * MAXNZ + j]);
+      if(j!=MAXNZ-1 && j==5 && MAXNZ>11){
+        printf(" ... \n");
+        j=MAXNZ-5;
+      }
     }
     printf("\n");
-    if(i!=NNZ-1 && i==5 && NNZ>11){
-      printf("... ");
-      i=NNZ-5;
+    if(i!=M-1 && i==5 && M>11){
+      printf(" ... \n");
+      i=M-5;
     }
   }
 }
