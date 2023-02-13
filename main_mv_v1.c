@@ -9,10 +9,12 @@
 #include <omp.h>
 #include "wtime.h"
 #include "read_csr.h"
+#include "read_ellpack.h"
 
-
-void MatrixVector(int M, int N, const int* IRP, const int* JA, const double* AZ, const double* x, double* restrict y);
+void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA, const double* AZ, const double* x, double* restrict y);
 void printCSR(int M, int N, int NNZ, const int* IRP, const int* JA, const double* AZ);
+void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA, const double* AZ, const double* x, double* restrict y);
+void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA, const double* AZ);
 
 int main(int argc, char** argv) 
 {
@@ -23,40 +25,60 @@ int main(int argc, char** argv)
   } else if (argc == 2) {
     matrix_file = argv[1];
   }
-  struct csr_matrix matrix;
-  int ret_code = read_csr_matrix(matrix_file, &matrix);
+  /* CSR */
+  struct csr_matrix matrix_csr;
+  int ret_code = read_csr_matrix(matrix_file, &matrix_csr);
   if (ret_code != 0) {
     printf("Failed to read matrix file\n");
     return ret_code;
   }
-  printCSR(matrix.M, matrix.N, matrix.NNZ, matrix.IRP, matrix.JA, matrix.AZ);
+  printCSR(matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_csr.IRP, matrix_csr.JA, matrix_csr.AZ);
   
-  double* x = (double*) malloc(sizeof(double)*matrix.M);
-  double* y = (double*) malloc(sizeof(double)*matrix.M);
+  double* x = (double*) malloc(sizeof(double)*matrix_csr.M);
+  double* y = (double*) malloc(sizeof(double)*matrix_csr.M);
   
   int row;
-  for ( row = 0; row < matrix.M; ++row) {
+  for ( row = 0; row < matrix_csr.M; ++row) {
     x[row] = 100.0f * ((double) rand()) / RAND_MAX;      
   }
 
   double t1 = wtime();
-  MatrixVector(matrix.M, matrix.N, matrix.IRP, matrix.JA, matrix.AZ, x, y);
+  matrixVectorCSR(matrix_csr.M, matrix_csr.N, matrix_csr.IRP, matrix_csr.JA, matrix_csr.AZ, x, y);
   double t2 = wtime();
   double tmlt = (t2-t1);
-  double mflops = (2.0e-6)*matrix.M*matrix.N/tmlt;
+  double mflops = (2.0e-6)*matrix_csr.NNZ/tmlt;
+  fprintf(stdout,"[CSR] Matrix-Vector product of size %d x %d with 1 thread: time %lf  MFLOPS %lf \n",
+	  matrix_csr.M,matrix_csr.N,tmlt,mflops);
+  /* EBD CSR */
+
+  /* ELLPACK */
+  struct ellpack_matrix matrix_ellpack;
+  int ret_code = read_ellpack_matrix(matrix_file, &matrix_ellpack);
+  if (ret_code != 0) {
+    printf("Failed to read matrix file\n");
+    return ret_code;
+  }
+  double t1 = wtime();
+  MatrixVectorELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ, matrix_ellpack.MAXNZ, matrix_ellpack.JA, matrix_ellpack.AZ, x, y);
+  double t2 = wtime();
+  double tmlt = (t2-t1);
+  double mflops = (2.0e-6)*matrix_ellpack.NNZ/tmlt;
+  fprintf(stdout,"[ELL] Matrix-Vector product of size %d x %d with 1 thread: time %lf  MFLOPS %lf \n",
+	  matrix_ellpack.M,matrix_ellpack.N,tmlt,mflops);
+  /* EBD ELLPACK */
+
   
-  fprintf(stdout,"Matrix-Vector product of size %d x %d with 1 thread: time %lf  MFLOPS %lf \n",
-	  matrix.M,matrix.N,tmlt,mflops);
-  
-  free(matrix.IRP);
-  free(matrix.JA);
-  free(matrix.AZ);
+  free(matrix_csr.IRP);
+  free(matrix_csr.JA);
+  free(matrix_csr.AZ);
+  free(matrix_ellpack.JA);
+  free(matrix_ellpack.AZ);
   free(x);
   free(y);
   return 0;
 }
 
-void MatrixVector(int M, int N, const int* IRP, const int* JA, const double* AZ, const double* x, double* restrict y) 
+void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA, const double* AZ, const double* x, double* restrict y) 
 {
   int row, col, idx;
   double t;
@@ -99,6 +121,50 @@ void printCSR(int M, int N, int NNZ, const int* IRP, const int* JA, const double
     }
   }
   printf("\n");
-  /* end print CSR */ 
+}
 
+void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA, const double* AZ, const double* x, double* restrict y) 
+{
+  int row, col, idx;
+  double t;
+  for (row = 0; row < M; row++) {
+      t = 0;
+      for (col = 0; j < MAXNZ; col++) {
+          if (col >= NNZ || JA[row*MAXNZ+col] == 0) {
+            break;
+          }
+          t += AZ[col] * x[JA[col]];
+      }
+      y[row] = t;
+  }
+}
+
+void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA, const double* AZ){
+  printf("ELLPACK representation:\n");
+  printf("M: %d\nN: %d\n", M, N);
+  printf("NNZ: %d\n", NNZ);
+  printf("MAXNZ: %d\n", MAXNZ);
+  printf("JA: ");
+  int i, j;
+  for (i = 0; i < M; i++) {
+    for (j = 0; j < MAXNZ; j++) {
+      printf("%d ", JA[i * MAXNZ + j]);
+    }
+    printf("\n");
+    if(i!=NNZ-1 && i==5 && NNZ>11){
+      printf("... ");
+      i=NNZ-5;
+    }
+  }
+  printf("AZ: ");
+  for (i = 0; i < M; i++) {
+    for (j = 0; j < MAXNZ; j++) {
+      printf("%.3lf ", AZ[i * MAXNZ + j]);
+    }
+    printf("\n");
+    if(i!=NNZ-1 && i==5 && NNZ>11){
+      printf("... ");
+      i=NNZ-5;
+    }
+  }
 }
