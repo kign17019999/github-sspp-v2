@@ -54,7 +54,7 @@ int main(int argc, char** argv)
     printf("%d ", matrix.IRP[i]);
     if(i!=matrix.M-1 && i==5 && matrix.M>11){
       printf("... ");
-      i=matrix.M-5
+      i=matrix.M-5;
     }
   }
   printf("\nJA: ");
@@ -62,7 +62,7 @@ int main(int argc, char** argv)
     printf("%d ", matrix.JA[i]);
     if(i!=matrix.NNZ-1 && i==5 && matrix.NNZ>11){
       printf("... ");
-      i=matrix.NNZ-5
+      i=matrix.NNZ-5;
     }
   }
   printf("\nAZ: ");
@@ -70,7 +70,7 @@ int main(int argc, char** argv)
     printf("%.3lf ", matrix.AZ[i]);
     if(i!=matrix.NNZ-1 && i==5 && matrix.NNZ>11){
       printf("... ");
-      i=matrix.NNZ-5
+      i=matrix.NNZ-5;
     }
   }
   printf("\n");
