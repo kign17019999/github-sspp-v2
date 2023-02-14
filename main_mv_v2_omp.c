@@ -22,6 +22,9 @@ void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ);
 void MatrixVectorCSRomp1(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* restrict y) ;
+void MatrixVectorCSRomp2(int M, int N, const int* IRP, const int* JA,
+ const double* AZ, const double* x, double* restrict y);
+
 
 int main(int argc, char** argv) 
 {
@@ -32,6 +35,7 @@ int main(int argc, char** argv)
   } else if (argc == 2) {
     matrix_file = argv[1];
   }
+
   /* CSR */
   struct csr_matrix matrix_csr;
   int ret_code;
@@ -41,15 +45,12 @@ int main(int argc, char** argv)
     return ret_code;
   }
   //printCSR(matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_csr.IRP, matrix_csr.JA, matrix_csr.AZ);
-  
   double* x = (double*) malloc(sizeof(double)*matrix_csr.M);
   double* y = (double*) malloc(sizeof(double)*matrix_csr.M);
-  
   int row;
   for ( row = 0; row < matrix_csr.M; ++row) {
     x[row] = 100.0f * ((double) rand()) / RAND_MAX;      
   }
-
   double t1, t2;
   t1 = wtime();
   MatrixVectorCSR(matrix_csr.M, matrix_csr.N, matrix_csr.IRP, matrix_csr.JA,
@@ -69,7 +70,6 @@ int main(int argc, char** argv)
     return ret_code;
   }
   //printELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ, matrix_ellpack.MAXNZ, matrix_ellpack.JA, matrix_ellpack.AZ);
-
   t1 = wtime();
   MatrixVectorELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ,
    matrix_ellpack.MAXNZ, matrix_ellpack.JA, matrix_ellpack.AZ, x, y);
@@ -90,6 +90,17 @@ int main(int argc, char** argv)
   fprintf(stdout,"[CSR omp1] Matrix-Vector product of size %d x %d with 1 thread: time %lf  MFLOPS %lf \n",
 	  matrix_csr.M,matrix_csr.N,tmlt_csr_omp1,mflops_csr_omp1);
   /* END CSR omp v1*/
+
+    /* CSR omp v2*/
+  t1 = wtime();
+  MatrixVectorCSRomp2(matrix_csr.M, matrix_csr.N, matrix_csr.IRP,
+   matrix_csr.JA, matrix_csr.AZ, x, y);
+  t2 = wtime();
+  double tmlt_csr_omp2 = (t2-t1);
+  double mflops_csr_omp2 = (2.0e-6)*matrix_csr.NNZ/tmlt_csr_omp1;
+  fprintf(stdout,"[CSR omp2] Matrix-Vector product of size %d x %d with 1 thread: time %lf  MFLOPS %lf \n",
+	  matrix_csr.M,matrix_csr.N,tmlt_csr_omp1,mflops_csr_omp1);
+  /* END CSR omp v2*/
 
   free(matrix_csr.IRP);
   free(matrix_csr.JA);
@@ -213,6 +224,25 @@ void MatrixVectorCSRomp1(int M, int N, const int* IRP, const int* JA,
 #pragma omp parallel shared(x, y, chunk_size) private(row, col, idx)
 {
 #pragma omp for schedule(dynamic, chunk_size) nowait
+  for (row = 0; row < M; row++) {
+      double t = 0;
+      for (col = IRP[row]; col < IRP[row+1]; col++) {
+          t += AZ[col] * x[JA[col]];
+      }
+      y[row] = t;
+  }
+}
+}
+
+
+void MatrixVectorCSRomp2(int M, int N, const int* IRP, const int* JA,
+ const double* AZ, const double* x, double* restrict y) 
+{
+  int row, col, idx;
+  double t;
+  int chunk_size=128/4;
+#pragma omp parallel for schedule(dynamic, 256) shared(x, y)
+{
   for (row = 0; row < M; row++) {
       double t = 0;
       for (col = IRP[row]; col < IRP[row+1]; col++) {
