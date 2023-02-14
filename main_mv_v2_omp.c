@@ -221,3 +221,4 @@ void MatrixVectorCSRomp1(int M, int N, const int* IRP, const int* JA,
       y[row] = t;
   }
 }
+}
