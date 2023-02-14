@@ -97,7 +97,7 @@ int main(int argc, char** argv)
    matrix_csr.JA, matrix_csr.AZ, x, y);
   t2 = wtime();
   double tmlt_csr_omp2 = (t2-t1);
-  double mflops_csr_omp2 = (2.0e-6)*matrix_csr.NNZ/tmlt_csr_omp1;
+  double mflops_csr_omp2 = (2.0e-6)*matrix_csr.NNZ/tmlt_csr_omp2;
   fprintf(stdout,"[CSR omp2] Matrix-Vector product of size %d x %d with 1 thread: time %lf  MFLOPS %lf \n",
 	  matrix_csr.M,matrix_csr.N,tmlt_csr_omp2,mflops_csr_omp2);
   /* END CSR omp v2*/
