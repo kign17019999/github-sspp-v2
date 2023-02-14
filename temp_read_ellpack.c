@@ -33,24 +33,14 @@ int read_ellpack_matrix(const char *file_name, struct ellpack_matrix *matrix) {
   int *row_counts = (int *) calloc(M, sizeof(int));
 
   for (i = 0; i < NNZ; i++) {
-    if (fscanf(f, "%d %d", &row, &col) != 2) {
+    if (fscanf(f, "%d %d %lf", &row, &col, &AZ) != 3) {
       fclose(f);
       return -1;
     }
     row--;
     col--;
-
-    if (mm_is_pattern(matcode)) {
-      AZ = 1.0;
-    } else {
-      if (fscanf(f, "%lf", &AZ) != 1) {
-        fclose(f);
-        return -1;
-      }
-    }
-
     row_counts[row]++;
-  }  
+  }
 
   matrix->MAXNZ = 0;
   for (i = 0; i < M; i++) {
@@ -79,23 +69,15 @@ int read_ellpack_matrix(const char *file_name, struct ellpack_matrix *matrix) {
     fclose(f);
     return ret_code;
   }
-  
+
   for (i = 0; i < NNZ; i++) {
-    if (fscanf(f, "%d %d", &row, &col) != 2) {
+    if (fscanf(f, "%d %d %lf", &row, &col, &AZ) != 3) {
       fclose(f);
       return -1;
     }
     row--;
     col--;
 
-    if(mm_is_pattern(matcode)) {
-      AZ = 1.0;
-    } else {
-      if (fscanf(f, "%lf", &AZ) != 1) {
-        fclose(f);
-        return -1;
-      }    
-    }
     int index = row * matrix->MAXNZ;
     for (j = 0; j < matrix->MAXNZ; j++) {
       if (matrix->JA[index + j] == -1) {
@@ -104,7 +86,7 @@ int read_ellpack_matrix(const char *file_name, struct ellpack_matrix *matrix) {
         break;
       }
     }
-  }  
+  }
 
   fclose(f);
   free(row_counts);
