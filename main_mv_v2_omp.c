@@ -236,6 +236,7 @@ void MatrixVectorELLomp1(int M, int N, int NNZ, int MAXNZ, const int* JA,
 {
   int chunk_size=256;
 #pragma omp parallel for schedule(dynamic, chunk_size) shared(x, y)
+{
   for (int row = 0; row < M; row++) {
       double t = 0;
       for (int col = 0; col < MAXNZ; col++) {
@@ -246,5 +247,6 @@ void MatrixVectorELLomp1(int M, int N, int NNZ, int MAXNZ, const int* JA,
           t += AZ[ja_idx] * x[JA[ja_idx]];
       }
       y[row] = t;
+  }
 }
 }
