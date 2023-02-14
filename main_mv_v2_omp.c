@@ -22,7 +22,7 @@ void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ);
 void MatrixVectorCSRomp1(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* restrict y) ;
-void MatrixVectorCSRomp2(int M, int N, const int* IRP, const int* JA,
+void MatrixVectorELLomp1(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ, const double* x, double* restrict y);
 
 
@@ -91,16 +91,16 @@ int main(int argc, char** argv)
 	  matrix_csr.M,matrix_csr.N,tmlt_csr_omp1,mflops_csr_omp1);
   /* END CSR omp v1*/
 
-    /* CSR omp v2*/
+  /* ELL omp v1*/
   t1 = wtime();
-  MatrixVectorCSRomp2(matrix_csr.M, matrix_csr.N, matrix_csr.IRP,
-   matrix_csr.JA, matrix_csr.AZ, x, y);
+  MatrixVectorELLomp1(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ, matrix_ellpack.MAXNZ, matrix_ellpack.JA,
+   matrix_ellpack.AZ, x, y);
   t2 = wtime();
-  double tmlt_csr_omp2 = (t2-t1);
-  double mflops_csr_omp2 = (2.0e-6)*matrix_csr.NNZ/tmlt_csr_omp2;
-  fprintf(stdout,"[CSR omp2] Matrix-Vector product of size %d x %d with 1 thread: time %lf  MFLOPS %lf \n",
-	  matrix_csr.M,matrix_csr.N,tmlt_csr_omp2,mflops_csr_omp2);
-  /* END CSR omp v2*/
+  double tmlt_ell_omp1 = (t2-t1);
+  double mflops_ell_omp1 = (2.0e-6)*matrix_ellpack.NNZ/tmlt_ell_omp1;
+  fprintf(stdout,"[ELL omp1] Matrix-Vector product of size %d x %d with 1 thread: time %lf  MFLOPS %lf \n",
+	  matrix_ellpack.M,matrix_ellpack.N,tmlt_ell_omp1,mflops_ell_omp1);
+  /* END ELL omp v1*/
 
   free(matrix_csr.IRP);
   free(matrix_csr.JA);
@@ -218,30 +218,8 @@ void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
 void MatrixVectorCSRomp1(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* restrict y) 
 {
-  int row, col;
-  double t;
-  int chunk_size=128/4;
-#pragma omp parallel shared(x, y, chunk_size) private(row, col, idx)
-{
-#pragma omp for schedule(dynamic, chunk_size) nowait
-  for (row = 0; row < M; row++) {
-      double t = 0;
-      for (col = IRP[row]; col < IRP[row+1]; col++) {
-          t += AZ[col] * x[JA[col]];
-      }
-      y[row] = t;
-  }
-}
-}
-
-
-void MatrixVectorCSRomp2(int M, int N, const int* IRP, const int* JA,
- const double* AZ, const double* x, double* restrict y) 
-{
-  int row, col;
-  double t;
-  int chunk_size=128/4;
-#pragma omp parallel for schedule(dynamic, 256) shared(x, y)
+  int chunk_size=256;
+#pragma omp parallel for schedule(dynamic, chunk_size) shared(x, y)
 {
   for (int row = 0; row < M; row++) {
       double t = 0;
@@ -250,5 +228,23 @@ void MatrixVectorCSRomp2(int M, int N, const int* IRP, const int* JA,
       }
       y[row] = t;
   }
+}
+}
+
+void MatrixVectorELLomp1(int M, int N, int NNZ, int MAXNZ, const int* JA,
+ const double* AZ, const double* x, double* restrict y) 
+{
+  int chunk_size=256;
+#pragma omp parallel for schedule(dynamic, chunk_size) shared(x, y)
+  for (int row = 0; row < M; row++) {
+      double t = 0;
+      for (int col = 0; col < MAXNZ; col++) {
+          int ja_idx = row * MAXNZ + col;
+          if (col >= NNZ || JA[ja_idx] < 0) {
+              break;
+          }
+          t += AZ[ja_idx] * x[JA[ja_idx]];
+      }
+      y[row] = t;
 }
 }
