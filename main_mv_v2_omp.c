@@ -115,7 +115,7 @@ int main(int argc, char** argv)
 void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* restrict y) 
 {
-  int row, col, idx;
+  int row, col;
   double t;
   for (row = 0; row < M; row++) {
       double t = 0;
@@ -162,7 +162,7 @@ void printCSR(int M, int N, int NNZ, const int* IRP, const int* JA,
 void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ, const double* x, double* restrict y) 
 {
-  int row, col, idx;
+  int row, col;
   double t;
   for (row = 0; row < M; row++) {
       t = 0;
@@ -218,7 +218,7 @@ void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
 void MatrixVectorCSRomp1(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* restrict y) 
 {
-  int row, col, idx;
+  int row, col;
   double t;
   int chunk_size=128/4;
 #pragma omp parallel shared(x, y, chunk_size) private(row, col, idx)
@@ -238,14 +238,14 @@ void MatrixVectorCSRomp1(int M, int N, const int* IRP, const int* JA,
 void MatrixVectorCSRomp2(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* restrict y) 
 {
-  int row, col, idx;
+  int row, col;
   double t;
   int chunk_size=128/4;
 #pragma omp parallel for schedule(dynamic, 256) shared(x, y)
 {
-  for (row = 0; row < M; row++) {
+  for (int row = 0; row < M; row++) {
       double t = 0;
-      for (col = IRP[row]; col < IRP[row+1]; col++) {
+      for (int col = IRP[row]; col < IRP[row+1]; col++) {
           t += AZ[col] * x[JA[col]];
       }
       y[row] = t;
