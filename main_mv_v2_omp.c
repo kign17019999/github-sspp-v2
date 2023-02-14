@@ -220,7 +220,6 @@ void MatrixVectorCSRomp1(int M, int N, const int* IRP, const int* JA,
 {
   int chunk_size=256;
 #pragma omp parallel for schedule(dynamic, chunk_size) shared(x, y)
-{
   for (int row = 0; row < M; row++) {
       double t = 0;
       for (int col = IRP[row]; col < IRP[row+1]; col++) {
@@ -229,24 +228,21 @@ void MatrixVectorCSRomp1(int M, int N, const int* IRP, const int* JA,
       y[row] = t;
   }
 }
-}
 
 void MatrixVectorELLomp1(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ, const double* x, double* restrict y) 
 {
   int chunk_size=256;
 #pragma omp parallel for schedule(dynamic, chunk_size) shared(x, y)
-{
   for (int row = 0; row < M; row++) {
-      double t = 0;
-      for (int col = 0; col < MAXNZ; col++) {
-          int ja_idx = row * MAXNZ + col;
-          if (col >= NNZ || JA[ja_idx] < 0) {
-              break;
-          }
-          t += AZ[ja_idx] * x[JA[ja_idx]];
+    double t = 0;
+    for (int col = 0; col < MAXNZ; col++) {
+      int ja_idx = row * MAXNZ + col;
+      if (col >= NNZ || JA[ja_idx] < 0) {
+        break;
       }
-      y[row] = t;
+      t += AZ[ja_idx] * x[JA[ja_idx]];
+    }
+    y[row] = t;
   }
-}
 }
