@@ -28,6 +28,9 @@ void MatrixVectorELLomp1(int M, int N, int NNZ, int MAXNZ, const int* JA,
 
 int main(int argc, char** argv) 
 {
+  int nthreads, tid;
+  omp_set_num_threads(5);
+
   char* matrix_file = "matrices/cage4.mtx"; // set default file name
   if (argc > 2) {
     printf("Usage: main <matrix_file>\n");
@@ -36,7 +39,7 @@ int main(int argc, char** argv)
     matrix_file = argv[1];
   }
 
-  /* CSR */
+  /* reading file into CSR */
   struct csr_matrix matrix_csr;
   int ret_code;
   ret_code = read_csr_matrix(matrix_file, &matrix_csr);
@@ -45,24 +48,9 @@ int main(int argc, char** argv)
     return ret_code;
   }
   //printCSR(matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_csr.IRP, matrix_csr.JA, matrix_csr.AZ);
-  double* x = (double*) malloc(sizeof(double)*matrix_csr.M);
-  double* y = (double*) malloc(sizeof(double)*matrix_csr.M);
-  int row;
-  for ( row = 0; row < matrix_csr.M; ++row) {
-    x[row] = 100.0f * ((double) rand()) / RAND_MAX;      
-  }
-  double t1, t2;
-  t1 = wtime();
-  MatrixVectorCSR(matrix_csr.M, matrix_csr.N, matrix_csr.IRP, matrix_csr.JA,
-   matrix_csr.AZ, x, y);
-  t2 = wtime();
-  double tmlt_csr_serial = (t2-t1);
-  double mflops_csr_serial = (2.0e-6)*matrix_csr.NNZ/tmlt_csr_serial;
-  fprintf(stdout,"[CSR] Matrix-Vector product of size %d x %d with 1 thread: time %lf  MFLOPS %lf \n",
-	  matrix_csr.M,matrix_csr.N,tmlt_csr_serial,mflops_csr_serial);
-  /* END CSR */
+  /* END reading file into CSR */
 
-  /* ELLPACK */
+  /* reading file into ELLPACK */
   struct ellpack_matrix matrix_ellpack;
   ret_code = read_ellpack_matrix(matrix_file, &matrix_ellpack);
   if (ret_code != 0) {
@@ -70,6 +58,30 @@ int main(int argc, char** argv)
     return ret_code;
   }
   //printELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ, matrix_ellpack.MAXNZ, matrix_ellpack.JA, matrix_ellpack.AZ);
+  /* END reading file into ELLPACK */
+
+  double* x = (double*) malloc(sizeof(double)*matrix_csr.M);
+  double* y = (double*) malloc(sizeof(double)*matrix_csr.M);
+  double* y0 = (double*) malloc(sizeof(double)*matrix_csr.M);
+  int row;
+  for ( row = 0; row < matrix_csr.M; ++row) {
+    x[row] = 100.0f * ((double) rand()) / RAND_MAX;      
+  }
+  double t1, t2;
+  double cal_deff;
+
+  /* CSR Serial*/
+  t1 = wtime();
+  MatrixVectorCSR(matrix_csr.M, matrix_csr.N, matrix_csr.IRP, matrix_csr.JA,
+   matrix_csr.AZ, x, y0);
+  t2 = wtime();
+  double tmlt_csr_serial = (t2-t1);
+  double mflops_csr_serial = (2.0e-6)*matrix_csr.NNZ/tmlt_csr_serial;
+  fprintf(stdout,"[CSR] Matrix-Vector product of size %d x %d with 1 thread: time %lf  MFLOPS %lf \n",
+	  matrix_csr.M,matrix_csr.N,tmlt_csr_serial,mflops_csr_serial);
+  /* END CSR Serial */
+
+  /* ELLPACK Serial */
   t1 = wtime();
   MatrixVectorELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ,
    matrix_ellpack.MAXNZ, matrix_ellpack.JA, matrix_ellpack.AZ, x, y);
@@ -78,7 +90,7 @@ int main(int argc, char** argv)
   double mflops_ell_serial = (2.0e-6)*matrix_ellpack.NNZ/tmlt_ell_serial;
   fprintf(stdout,"[ELL] Matrix-Vector product of size %d x %d with 1 thread: time %lf  MFLOPS %lf \n",
 	  matrix_ellpack.M,matrix_ellpack.N,tmlt_ell_serial,mflops_ell_serial);
-  /* END ELLPACK */
+  /* END ELLPACK Serial */
 
   /* CSR omp v1*/
   t1 = wtime();
@@ -219,7 +231,9 @@ void MatrixVectorCSRomp1(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* restrict y) 
 {
   int chunk_size=256;
-#pragma omp parallel for schedule(dynamic, chunk_size) shared(x, y)
+#pragma omp parallel shared(M, N, IRP, JA, AZ, x, y) private(chunk_size)
+{
+#pragma omp for schedule(dynamic, chunk_size)
   for (int row = 0; row < M; row++) {
       double t = 0;
       for (int col = IRP[row]; col < IRP[row+1]; col++) {
@@ -228,12 +242,15 @@ void MatrixVectorCSRomp1(int M, int N, const int* IRP, const int* JA,
       y[row] = t;
   }
 }
+}
 
 void MatrixVectorELLomp1(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ, const double* x, double* restrict y) 
 {
   int chunk_size=256;
-#pragma omp parallel for schedule(dynamic, chunk_size) shared(x, y)
+#pragma omp parallel shared(M, N, NNZ, MAXNZ, JA, AZ, x, y) private(chunk_size)
+{
+#pragma omp parallel for schedule(dynamic, chunk_size)
   for (int row = 0; row < M; row++) {
     double t = 0;
     for (int col = 0; col < MAXNZ; col++) {
@@ -245,4 +262,5 @@ void MatrixVectorELLomp1(int M, int N, int NNZ, int MAXNZ, const int* JA,
     }
     y[row] = t;
   }
+}
 }
