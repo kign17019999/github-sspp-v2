@@ -21,7 +21,7 @@ void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
 void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ);
 void MatrixVectorCSRomp1(int M, int N, const int* IRP, const int* JA,
- const double* AZ, const double* x, double* restrict y) 
+ const double* AZ, const double* x, double* restrict y) ;
 
 int main(int argc, char** argv) 
 {
