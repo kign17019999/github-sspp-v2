@@ -41,7 +41,7 @@ int main(int argc, char** argv)
   } else if (argc == 4){
     matrix_file = argv[1];
     nthreads = atoi(argv[2]);
-    chunk_size = atoi(argv[3])
+    chunk_size = atoi(argv[3]);
   } else {
     printf("Usage: main <matrix_file> [nthreads] [chunk_size]\n");
     return -1;
