@@ -115,8 +115,8 @@ int main(int argc, char** argv)
 {
 #pragma omp master
 {
-  fprintf(stdout,"[CSR omp1] with %d thread: time %lf  MFLOPS %lf max_diff %lf\n",
-	  omp_get_num_threads(), tmlt_csr_omp1, mflops_csr_omp1, max_diff_csr_omp1);
+  fprintf(stdout,"[CSR omp1] with %d thread chunk_size %d: time %lf  MFLOPS %lf max_diff %lf\n",
+	  omp_get_num_threads(), chunk_size, tmlt_csr_omp1, mflops_csr_omp1, max_diff_csr_omp1);
 }
 }
   /* END CSR omp v1*/
@@ -133,8 +133,8 @@ int main(int argc, char** argv)
 {
 #pragma omp master
 {
-  fprintf(stdout,"[ELL omp1] with %d thread: time %lf  MFLOPS %lf max_diff %lf\n",
-	  omp_get_num_threads(), tmlt_ell_omp1, mflops_ell_omp1, max_diff_ell_omp1);
+  fprintf(stdout,"[ELL omp1] with %d thread chunk_size %d: time %lf  MFLOPS %lf max_diff %lf\n",
+	  omp_get_num_threads(), chunk_size, tmlt_ell_omp1, mflops_ell_omp1, max_diff_ell_omp1);
 }
 }
   /* END ELL omp v1*/
