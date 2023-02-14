@@ -20,6 +20,7 @@ void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ, const double* x, double* restrict y);
 void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ);
+int check_result(int M, double* restrict y0, double* restrict y);
 void MatrixVectorCSRomp1(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* restrict y) ;
 void MatrixVectorELLomp1(int M, int N, int NNZ, int MAXNZ, const int* JA,
@@ -249,7 +250,7 @@ int check_result(int M, double* restrict y0, double* restrict y)
     cal_diff = abs(y0[i] - y[i]);
     if(max_diff < cal_diff) max_diff = cal_diff;
   }
-  return max_diff
+  return max_diff;
 }
 
 void MatrixVectorCSRomp1(int M, int N, const int* IRP, const int* JA,
