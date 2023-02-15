@@ -1,0 +1,124 @@
+//function 1
+
+void innerMatrixVector(int rows, int cols, const double* A, int ncallc, const double* x, 
+		       double beta, double* restrict y)
+{
+  int row,col, idx;
+  double t0, t1, t2, t3, t4, t5, t6, t7;
+
+  // Is it really useful to push unrolling to 8 for this kernel?
+#pragma omp parallel for shared(x,y,A,rows,cols,ncallc) private(row,col,idx,t0, t1, t2, t3, t4, t5, t6, t7 ) 
+  for (row = 0; row < rows - rows%8; row += 8) {
+    if (beta == 0.0) {
+      t0 = beta;
+      t1 = beta;
+      t2 = beta;
+      t3 = beta;
+      t4 = beta;
+      t5 = beta;
+      t6 = beta;
+      t7 = beta;
+    } else {
+      t0 = beta *  y[row+0];
+      t1 = beta *  y[row+1];
+      t2 = beta *  y[row+2];
+      t3 = beta *  y[row+3];
+      t4 = beta *  y[row+4];
+      t5 = beta *  y[row+5];
+      t6 = beta *  y[row+6];
+      t7 = beta *  y[row+7];
+    }
+
+    for (col = 0; col < cols - cols%4 ; col+=4) {
+      t0 += A[(row+0) * ncallc + col+0] * x[col+0] + A[(row+0) * ncallc + col+1] * x[col+1]
+	   +A[(row+0) * ncallc + col+2] * x[col+2] + A[(row+0) * ncallc + col+3] * x[col+3];
+      t1 += A[(row+1) * ncallc + col+0] * x[col+0] + A[(row+1) * ncallc + col+1] * x[col+1]
+	   +A[(row+1) * ncallc + col+2] * x[col+2] + A[(row+1) * ncallc + col+3] * x[col+3];
+      t2 += A[(row+2) * ncallc + col+0] * x[col+0] + A[(row+2) * ncallc + col+1] * x[col+1]
+	   +A[(row+2) * ncallc + col+2] * x[col+2] + A[(row+2) * ncallc + col+3] * x[col+3];
+      t3 += A[(row+3) * ncallc + col+0] * x[col+0] + A[(row+3) * ncallc + col+1] * x[col+1]
+	   +A[(row+3) * ncallc + col+2] * x[col+2] + A[(row+3) * ncallc + col+3] * x[col+3];
+      t4 += A[(row+4) * ncallc + col+0] * x[col+0] + A[(row+4) * ncallc + col+1] * x[col+1]
+	   +A[(row+4) * ncallc + col+2] * x[col+2] + A[(row+4) * ncallc + col+3] * x[col+3];
+      t5 += A[(row+5) * ncallc + col+0] * x[col+0] + A[(row+5) * ncallc + col+1] * x[col+1]
+	   +A[(row+5) * ncallc + col+2] * x[col+2] + A[(row+5) * ncallc + col+3] * x[col+3];
+      t6 += A[(row+6) * ncallc + col+0] * x[col+0] + A[(row+6) * ncallc + col+1] * x[col+1]
+	   +A[(row+6) * ncallc + col+2] * x[col+2] + A[(row+6) * ncallc + col+3] * x[col+3];
+      t7 += A[(row+7) * ncallc + col+0] * x[col+0] + A[(row+7) * ncallc + col+1] * x[col+1]
+	   +A[(row+7) * ncallc + col+2] * x[col+2] + A[(row+7) * ncallc + col+3] * x[col+3];
+    }
+    for (col = cols - cols%4; col < cols; col++) {
+      t0 += A[(row+0) * ncallc + col] * x[col] ;
+      t1 += A[(row+1) * ncallc + col] * x[col] ;
+      t2 += A[(row+2) * ncallc + col] * x[col] ;
+      t3 += A[(row+3) * ncallc + col] * x[col] ;
+      t4 += A[(row+4) * ncallc + col] * x[col] ;
+      t5 += A[(row+5) * ncallc + col] * x[col] ;
+      t6 += A[(row+6) * ncallc + col] * x[col] ;
+      t7 += A[(row+7) * ncallc + col] * x[col] ;
+    }
+    
+    y[row+0] = t0;
+    y[row+1] = t1;
+    y[row+2] = t2;
+    y[row+3] = t3;
+    y[row+4] = t4;
+    y[row+5] = t5;
+    y[row+6] = t6;
+    y[row+7] = t7;
+  }
+  
+  for (row = rows - rows%8; row < rows; row++) {
+    double t=0.0;
+    for (col = 0; col < cols; col++) {
+      int idx = row * ncallc + col;
+      t = t + A[idx]*x[col];      
+    }
+    y[row]=t;
+  }
+}
+====================================
+// function 2
+// Unrolling by 8 rows
+void MatrixVector(int rows, int cols, const double* A, const double* x, double* restrict y) 
+{
+  int row,col, idx;
+#pragma omp parallel for shared(x,y,A) private(row,col,idx )
+  for (row = 0; row < rows - rows%8; row += 8) {
+    double t0 = A[(row+0) * cols] * x[0];
+    double t1 = A[(row+1) * cols] * x[0];
+    double t2 = A[(row+2) * cols] * x[0];
+    double t3 = A[(row+3) * cols] * x[0];
+    double t4 = A[(row+4) * cols] * x[0];
+    double t5 = A[(row+5) * cols] * x[0];
+    double t6 = A[(row+6) * cols] * x[0];
+    double t7 = A[(row+7) * cols] * x[0];
+    for (col = 1; col < cols ; col++) {
+      t0 += A[(row+0) * cols + col] * x[col];
+      t1 += A[(row+1) * cols + col] * x[col];
+      t2 += A[(row+2) * cols + col] * x[col];
+      t3 += A[(row+3) * cols + col] * x[col];
+      t4 += A[(row+4) * cols + col] * x[col];
+      t5 += A[(row+5) * cols + col] * x[col];
+      t6 += A[(row+6) * cols + col] * x[col];
+      t7 += A[(row+7) * cols + col] * x[col];
+    }
+    y[row+0] = t0;
+    y[row+1] = t1;
+    y[row+2] = t2;
+    y[row+3] = t3;
+    y[row+4] = t4;
+    y[row+5] = t5;
+    y[row+6] = t6;
+    y[row+7] = t7;
+  }
+  
+  for (row = rows - rows%8; row < rows; row++) {
+    double t=0.0;
+    for (col = 0; col < cols; col++) {
+      int idx = row * cols + col;
+      t = t + A[idx]*x[col];      
+    }
+    y[row]=t;
+  }
+}
