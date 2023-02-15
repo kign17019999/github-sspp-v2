@@ -323,12 +323,14 @@ void save_result_omp(int nthreads, int chunk_size,
   char filename[] = "result_omp.csv";
   fp = fopen(filename, "a+");
   if (fp == NULL) {
-    // create new file with header
-    fp = fopen(filename, "w");
-    if (fp == NULL) {
-      printf("Error creating file.\n");
-      exit(1);
-    }
+    printf("Error opening file.\n");
+    exit(1);
+  }
+  // check if file is empty
+  fseek(fp, 0, SEEK_END);
+  long file_size = ftell(fp);
+  if (file_size == 0) {
+    // add header row
     fprintf(fp, "nthreads,chunk_size,tmlt_csr_serial,mflops_csr_serial,max_diff_csr_serial,tmlt_ell_serial,mflops_ell_serial,max_diff_ell_serial,tmlt_csr_omp1,mflops_csr_omp1,max_diff_csr_omp1,tmlt_ell_omp1,mflops_ell_omp1,max_diff_ell_omp1\n");
   }
 
