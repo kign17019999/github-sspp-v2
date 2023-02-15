@@ -318,11 +318,9 @@ void save_result_omp(int nthreads, int chunk_size,
                  double tmlt_csr_omp1, double mflops_csr_omp1, double max_diff_csr_omp1,
                  double tmlt_ell_omp1, double mflops_ell_omp1, double max_diff_ell_omp1)
 {
-
   // open file for appending or create new file with header
   FILE *fp;
   char filename[] = "result_omp.csv";
-  char header[] = "nthreads,chunk_size,tmlt_csr_serial,mflops_csr_serial,max_diff_csr_serial,tmlt_ell_serial,mflops_ell_serial,max_diff_ell_serial,tmlt_csr_omp1,mflops_csr_omp1,max_diff_csr_omp1,tmlt_ell_omp1,mflops_ell_omp1,max_diff_ell_omp1\n";
   fp = fopen(filename, "a+");
   if (fp == NULL) {
     // create new file with header
@@ -331,7 +329,7 @@ void save_result_omp(int nthreads, int chunk_size,
       printf("Error creating file.\n");
       exit(1);
     }
-    fprintf(fp, header);
+    fprintf(fp, "nthreads,chunk_size,tmlt_csr_serial,mflops_csr_serial,max_diff_csr_serial,tmlt_ell_serial,mflops_ell_serial,max_diff_ell_serial,tmlt_csr_omp1,mflops_csr_omp1,max_diff_csr_omp1,tmlt_ell_omp1,mflops_ell_omp1,max_diff_ell_omp1\n");
   }
 
   // write new row to file
