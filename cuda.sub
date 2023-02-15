@@ -30,7 +30,7 @@
 ##
 ## Put YOUR email address in the next line:
 ##
-#PBS -M john.doe@cranfield.ac.uk
+#PBS -M purin.tanirat.240@cranfield.ac.uk
 ##
 ##
 ##
@@ -61,15 +61,8 @@ gpus=`echo $CUDA_VISIBLE_DEVICES|awk -F"," '{print NF}'`
 ## Put correct parameters in mpirun execution line
 ## below:
 ##
-../introduction/deviceQuery
-for n in 512 1024 1536 2048 3072 4096 5120
-do
-    for version in _1thread _1d_block _2d_block _cublas
-    do
-	echo "Version: $version"
-	./matrix_vector$version  $n $n
-    done
-done
+./01-matrix_vector_1thread 10000 10000
+./main_cuda_v1 matrices/cage4.mtx
 
 
 /bin/rm -f $PBS_JOBID
