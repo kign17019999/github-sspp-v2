@@ -147,7 +147,7 @@ int main(int argc, char** argv)
   //save result into csv file
   save_result_omp(nthreads, chunk_size,
    tmlt_csr_serial, mflops_csr_serial, 0,
-   tmlt_ell_serial, mflops_ell_omp1, max_diff_ell_serial,
+   tmlt_ell_serial, mflops_ell_serial, max_diff_ell_serial,
    tmlt_csr_omp1, mflops_csr_omp1, max_diff_csr_omp1,
    tmlt_ell_omp1, mflops_ell_omp1, max_diff_ell_omp1);
 
