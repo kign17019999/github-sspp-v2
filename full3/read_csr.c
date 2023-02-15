@@ -1,9 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "mmio.h"
-#include "read_ellpack_T.h"
+#include "read_csr.h"
 
-int read_ellpack_matrix(const char *file_name, struct ellpack_matrix *matrix) {
+int read_csr_matrix(const char *file_name, struct csr_matrix *matrix) {
   MM_typecode matcode;
   int ret_code;
 
@@ -23,15 +23,21 @@ int read_ellpack_matrix(const char *file_name, struct ellpack_matrix *matrix) {
     return ret_code;
   }
 
-  int i, j;
+  int i;
   matrix->M = M;
   matrix->N = N;
   matrix->NNZ = NNZ;
 
-  int row, col;
-  double AZ;
+  matrix->IRP = (int *) malloc((M + 1) * sizeof(int));
+  matrix->JA = (int *) malloc(NNZ * sizeof(int));
+  matrix->AZ = (double *) malloc(NNZ * sizeof(double));
+
+  matrix->IRP[0] = 0;
+
   int *row_counts = (int *) calloc(M, sizeof(int));
 
+  int row, col;
+  double AZ;
   for (i = 0; i < NNZ; i++) {
     if (fscanf(f, "%d %d", &row, &col) != 2) {
       fclose(f);
@@ -50,22 +56,14 @@ int read_ellpack_matrix(const char *file_name, struct ellpack_matrix *matrix) {
     }
 
     row_counts[row]++;
-  }  
-
-  matrix->MAXNZ = 0;
-  for (i = 0; i < M; i++) {
-    if (row_counts[i] > matrix->MAXNZ) {
-      matrix->MAXNZ = row_counts[i];
-    }
   }
 
-  matrix->JA = (int *) malloc(M * matrix->MAXNZ * sizeof(int));
-  matrix->AZ = (double *) malloc(M * matrix->MAXNZ * sizeof(double));
+  for (i = 0; i < M; i++) {
+    matrix->IRP[i + 1] = matrix->IRP[i] + row_counts[i];
+  }
 
   for (i = 0; i < M; i++) {
-    for (j = 0; j < matrix->MAXNZ; j++) {
-      matrix->JA[i * matrix->MAXNZ + j] = -1;
-    }
+    row_counts[i] = 0;
   }
 
   rewind(f);
@@ -79,7 +77,7 @@ int read_ellpack_matrix(const char *file_name, struct ellpack_matrix *matrix) {
     fclose(f);
     return ret_code;
   }
-  
+
   for (i = 0; i < NNZ; i++) {
     if (fscanf(f, "%d %d", &row, &col) != 2) {
       fclose(f);
@@ -94,20 +92,15 @@ int read_ellpack_matrix(const char *file_name, struct ellpack_matrix *matrix) {
       if (fscanf(f, "%lf", &AZ) != 1) {
         fclose(f);
         return -1;
-      }    
-    }
-    int index = row * matrix->MAXNZ;
-    for (j = 0; j < matrix->MAXNZ; j++) {
-      if (matrix->JA[index + j] == -1) {
-        matrix->JA[index + j] = col;
-        matrix->AZ[index + j] = AZ;
-        break;
       }
     }
-  }  
+    int index = matrix->IRP[row] + row_counts[row];
+    matrix->JA[index] = col;
+    matrix->AZ[index] = AZ;
+    row_counts[row]++;
+  }
 
   fclose(f);
   free(row_counts);
   return 0;
 }
-

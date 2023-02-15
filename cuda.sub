@@ -61,7 +61,7 @@ gpus=`echo $CUDA_VISIBLE_DEVICES|awk -F"," '{print NF}'`
 ## Put correct parameters in mpirun execution line
 ## below:
 ##
-./01-matrix_vector_1thread 10000 10000
+./matrix_vector_1thread 10000 10000
 ./main_cuda_v1 matrices/cage4.mtx
 
 

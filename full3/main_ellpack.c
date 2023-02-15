@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "read_ellpack_T.h"
+#include "read_ellpack.h"
 
 int main(int argc, char *argv[]) {
   char* matrix_file = "matrices/cage4.mtx"; // set default file name
