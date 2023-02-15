@@ -9,14 +9,14 @@
 #include "read_ellpack.h"
 
 void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
- const double* AZ, const double* x, double* restrict y);
+ const double* AZ, const double* x, double* y);
 void printCSR(int M, int N, int NNZ, const int* IRP, const int* JA,
  const double* AZ);
 void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
- const double* AZ, const double* x, double* restrict y);
+ const double* AZ, const double* x, double* y);
 void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ);
-int check_result(int M, double* restrict y0, double* restrict y);
+int check_result(int M, double* y0, double* y);
 
 int main(int argc, char** argv) 
 {
@@ -94,7 +94,7 @@ int main(int argc, char** argv)
 }
 
 void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
- const double* AZ, const double* x, double* restrict y) 
+ const double* AZ, const double* x, double* y) 
 {
   int row, col;
   double t;
@@ -141,7 +141,7 @@ void printCSR(int M, int N, int NNZ, const int* IRP, const int* JA,
 }
 
 void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
- const double* AZ, const double* x, double* restrict y) 
+ const double* AZ, const double* x, double* y) 
 {
   int row, col;
   double t;
@@ -197,7 +197,7 @@ void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
   }
 }
 
-int check_result(int M, double* restrict y0, double* restrict y)
+int check_result(int M, double* y0, double* y)
 {
   double max_diff = 0;
   double cal_diff = 0;
