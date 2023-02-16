@@ -1,0 +1,22 @@
+/scratch/s388240/sspp/github-sspp-v2/main_cuda_v2.cu(33): warning: conversion from a string literal to "char *" is deprecated
+
+/scratch/s388240/sspp/github-sspp-v2/main_cuda_v2.cu(129): error: identifier "timer" is undefined
+
+/scratch/s388240/sspp/github-sspp-v2/main_cuda_v2.cu(131): error: argument of type "double *" is incompatible with parameter of type "const int *"
+
+/scratch/s388240/sspp/github-sspp-v2/main_cuda_v2.cu(131): error: argument of type "double *" is incompatible with parameter of type "const int *"
+
+/scratch/s388240/sspp/github-sspp-v2/main_cuda_v2.cu(154): warning: variable "t" was declared but never referenced
+
+/scratch/s388240/sspp/github-sspp-v2/main_cuda_v2.cu(270): error: identifier "rows" is undefined
+
+4 errors detected in the compilation of "/tmp/tmpxft_00021afe_00000000-6_main_cuda_v2.cpp1.ii".
+CMake Error at main_cuda_v2_generated_main_cuda_v2.cu.o.cmake:275 (message):
+  Error generating file
+  /scratch/s388240/sspp/github-sspp-v2/CMakeFiles/main_cuda_v2.dir//./main_cuda_v2_generated_main_cuda_v2.cu.o
+
+
+make[3]: *** [CMakeFiles/main_cuda_v2.dir/main_cuda_v2_generated_main_cuda_v2.cu.o] Error 1
+make[2]: *** [CMakeFiles/main_cuda_v2.dir/all] Error 2
+make[1]: *** [CMakeFiles/main_cuda_v2.dir/rule] Error 2
+make: *** [main_cuda_v2] Error 2

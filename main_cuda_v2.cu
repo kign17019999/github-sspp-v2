@@ -106,8 +106,8 @@ int main(int argc, char** argv)
   checkCudaErrors(cudaMemcpy(d_NNZ, &matrix_csr.NNZ, sizeof(int), cudaMemcpyHostToDevice));
   checkCudaErrors(cudaMemcpy(d_ell_MAXNZ, &matrix_ellpack.MAXNZ, sizeof(int), cudaMemcpyHostToDevice));
 
-  double *d_csr_IRP, *d_csr_JA, *d_csr_AZ;
-  double *d_ell_JA, *d_ell_AZ;
+  double *d_csr_IRP, *d_csr_AZ, *d_ell_AZ;
+  int *d_csr_JA, *d_ell_JA;
   checkCudaErrors(cudaMalloc((void**) &d_csr_IRP, (matrix_csr.M+1) * sizeof(int)));
   checkCudaErrors(cudaMalloc((void**) &d_csr_JA, matrix_csr.NNZ * sizeof(int)));
   checkCudaErrors(cudaMalloc((void**) &d_csr_AZ, matrix_csr.NNZ * sizeof(double)));
@@ -126,11 +126,17 @@ int main(int argc, char** argv)
   checkCudaErrors(cudaMemcpy(d_x, &x, matrix_csr.N, cudaMemcpyHostToDevice));
 
   const dim3 GRID_DIM((matrix_csr.M - 1 + BLOCK_DIM.x)/ BLOCK_DIM.x  ,1);
+  
+  // Create the CUDA SDK timer.
+  StopWatchInterface* timer = 0;
+  sdkCreateTimer(&timer);
   timer->reset();
+
   timer->start();
   gpuMatrixVectorCSR<<<GRID_DIM, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
   checkCudaErrors(cudaDeviceSynchronize());
   timer->stop();
+
   double mflops_csr_cuda = (2.0e-6)*matrix_csr.NNZ/timer->getTime()/1000;
   printf("mflops_csr_cuda %lf\n", mflops_csr_cuda);
 
@@ -267,7 +273,7 @@ __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
 {
   int tr = threadIdx.x;
   int row = blockIdx.x*blockDim.x + tr;
-  if (row < rows) {
+  if (row < M) {
     for (row = 0; row < M; row++) {
       double t = 0;
       for (int col = IRP[row]; col < IRP[row+1]; col++) {
