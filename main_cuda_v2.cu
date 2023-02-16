@@ -137,8 +137,7 @@ int main(int argc, char** argv)
   //checkCudaErrors(cudaDeviceSynchronize());
   timer->stop();
 
-  double mflops_csr_cuda = (2.0e-6)*matrix_csr.NNZ/timer->getTime()/1000;
-  printf("mflops_csr_cuda %lf\n", mflops_csr_cuda);
+  double mflops_csr_cuda = (2.0e-6)*matrix_csr.NNZ/(timer->getTime()/1000);
 
   /* -------------------------- */
 
