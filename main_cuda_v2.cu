@@ -25,7 +25,7 @@ void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
 int check_result(int M, double* y0, double* y);
 
 __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
- const double* AZ, const double* x, double* y)
+ const double* AZ, const double* x, double* y);
 
 
 int main(int argc, char** argv) 
