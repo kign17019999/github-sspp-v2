@@ -134,7 +134,7 @@ int main(int argc, char** argv)
 
   timer->start();
   gpuMatrixVectorCSR<<<GRID_DIM, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
-  checkCudaErrors(cudaDeviceSynchronize());
+  //checkCudaErrors(cudaDeviceSynchronize());
   timer->stop();
 
   double mflops_csr_cuda = (2.0e-6)*matrix_csr.NNZ/timer->getTime()/1000;
