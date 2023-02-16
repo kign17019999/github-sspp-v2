@@ -2,6 +2,7 @@
     "files.associations": {
         "mmio.h": "c",
         "stdio.h": "c",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "memory": "cpp"
     }
 }

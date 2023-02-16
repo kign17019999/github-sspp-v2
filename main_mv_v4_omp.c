@@ -75,7 +75,7 @@ int main(int argc, char** argv)
   //printELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ, matrix_ellpack.MAXNZ, matrix_ellpack.JA, matrix_ellpack.AZ);
   /* END reading file into ELLPACK */
 
-  double* x = (double*) malloc(sizeof(double)*matrix_csr.M);
+  double* x = (double*) malloc(sizeof(double)*matrix_csr.N);
   double* y = (double*) malloc(sizeof(double)*matrix_csr.M);
   double* y0 = (double*) malloc(sizeof(double)*matrix_csr.M);
   int row;
