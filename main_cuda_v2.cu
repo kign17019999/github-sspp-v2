@@ -106,8 +106,8 @@ int main(int argc, char** argv)
   checkCudaErrors(cudaMemcpy(d_NNZ, &matrix_csr.NNZ, sizeof(int), cudaMemcpyHostToDevice));
   checkCudaErrors(cudaMemcpy(d_ell_MAXNZ, &matrix_ellpack.MAXNZ, sizeof(int), cudaMemcpyHostToDevice));
 
-  double *d_csr_IRP, *d_csr_AZ, *d_ell_AZ;
-  int *d_csr_JA, *d_ell_JA;
+  double *d_csr_AZ, *d_ell_AZ;
+  int *d_csr_IRP, *d_csr_JA, *d_ell_JA;
   checkCudaErrors(cudaMalloc((void**) &d_csr_IRP, (matrix_csr.M+1) * sizeof(int)));
   checkCudaErrors(cudaMalloc((void**) &d_csr_JA, matrix_csr.NNZ * sizeof(int)));
   checkCudaErrors(cudaMalloc((void**) &d_csr_AZ, matrix_csr.NNZ * sizeof(double)));
