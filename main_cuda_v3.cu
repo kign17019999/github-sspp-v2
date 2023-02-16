@@ -30,6 +30,7 @@ __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
 
 int main(int argc, char** argv) 
 {
+  printf("run from file %s\n", argv[0]);
   char* matrix_file = "matrices/cage4.mtx"; // set default file name
   if (argc == 2) {
     matrix_file = argv[1];
