@@ -22,7 +22,7 @@ void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ, const double* x, double* y);
 void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ);
-int check_result(int M, double* y0, double* y);
+int check_result(int N, double* y0, double* y);
 
 __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* y);
@@ -88,7 +88,7 @@ int main(int argc, char** argv)
   t2 = wtime();
   double tmlt_ell_serial = (t2-t1);
   double mflops_ell_serial = (2.0e-6)*matrix_ellpack.NNZ/tmlt_ell_serial;
-  double max_diff_ell_serial = check_result(matrix_csr.M, y0, y);
+  double max_diff_ell_serial = check_result(matrix_csr.N, y0, y);
   fprintf(stdout,"[ELL] with 1 thread: time %lf  MFLOPS %lf max_diff %lf\n",
 	  tmlt_ell_serial,mflops_ell_serial, max_diff_ell_serial);
   /* END ELLPACK Serial */
@@ -138,10 +138,11 @@ int main(int argc, char** argv)
   //checkCudaErrors(cudaDeviceSynchronize());
   timer->stop();
 
-  double mflops_csr_cuda = (2.0e-6)*matrix_csr.NNZ/(timer->getTime()/1000);
-  double max_diff_csr_cuda = check_result(matrix_csr.M, y0, y);
-
   checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.M*sizeof(double),cudaMemcpyDeviceToHost));
+
+  double mflops_csr_cuda = (2.0e-6)*matrix_csr.NNZ/(timer->getTime()/1000);
+  double max_diff_csr_cuda = check_result(matrix_csr.N, y0, y);
+  
   fprintf(stdout,"[CSR cuda] with X thread: time %lf  MFLOPS %lf max_diff %lf\n",
 	  timer->getTime(),mflops_csr_cuda, max_diff_csr_cuda);
 
@@ -262,11 +263,11 @@ void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
   }
 }
 
-int check_result(int M, double* y0, double* y)
+int check_result(int N, double* y0, double* y)
 {
   double max_diff = 0;
   double cal_diff = 0;
-  for(int i=0; i < M; i++){
+  for(int i=0; i < N; i++){
     cal_diff = abs(y0[i] - y[i]);
     if(max_diff < cal_diff) max_diff = cal_diff;
   }
