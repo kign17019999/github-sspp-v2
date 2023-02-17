@@ -115,19 +115,19 @@ int main(int argc, char** argv)
   checkCudaErrors(cudaMalloc((void**) &d_ell_JA, matrix_ellpack.M * sizeof(int)));
   checkCudaErrors(cudaMalloc((void**) &d_ell_AZ, matrix_ellpack.M * sizeof(double)));
 
-  checkCudaErrors(cudaMemcpy(d_csr_IRP, &matrix_csr.IRP, (matrix_csr.M+1), cudaMemcpyHostToDevice));
-  checkCudaErrors(cudaMemcpy(d_csr_JA, &matrix_csr.JA, matrix_csr.NNZ, cudaMemcpyHostToDevice));
-  checkCudaErrors(cudaMemcpy(d_csr_AZ, &matrix_csr.AZ, matrix_csr.NNZ, cudaMemcpyHostToDevice));
-  checkCudaErrors(cudaMemcpy(d_ell_JA, &matrix_ellpack.JA, matrix_ellpack.M, cudaMemcpyHostToDevice));
-  checkCudaErrors(cudaMemcpy(d_ell_AZ, &matrix_ellpack.AZ, matrix_ellpack.M, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_csr_IRP, matrix_csr.IRP, (matrix_csr.M+1) * sizeof(int), cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_csr_JA, matrix_csr.JA, matrix_csr.NNZ * sizeof(int), cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_csr_AZ, matrix_csr.AZ, matrix_csr.NNZ * sizeof(double), cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_ell_JA, matrix_ellpack.JA, matrix_ellpack.M * sizeof(int), cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_ell_AZ, matrix_ellpack.AZ, matrix_ellpack.M * sizeof(double), cudaMemcpyHostToDevice));
 
   double *d_x, *d_y;
   checkCudaErrors(cudaMalloc((void**) &d_x, (matrix_csr.N) * sizeof(double)));
   checkCudaErrors(cudaMalloc((void**) &d_y, (matrix_csr.M) * sizeof(double)));
-  checkCudaErrors(cudaMemcpy(d_x, &x, matrix_csr.N, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy(d_x, x, matrix_csr.N * sizeof(double), cudaMemcpyHostToDevice));
 
   const dim3 GRID_DIM((matrix_csr.M - 1 + BLOCK_DIM.x)/ BLOCK_DIM.x  ,1);
-  
+  printf("grid dim = %d , block dim = %d \n",GRID_DIM.x,BLOCK_DIM.x);
   // Create the CUDA SDK timer.
   StopWatchInterface* timer = 0;
   sdkCreateTimer(&timer);
