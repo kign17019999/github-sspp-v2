@@ -77,16 +77,7 @@ int main(int argc, char** argv)
   }
   double t1, t2;
   fprintf(stdout,"Matrix-Vector product of %s of size %d x %d\n", matrix_file, matrix_csr.M, matrix_csr.N);
-
   
-  gpuMatrixVectorCSR<<<GRID_DIM, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
-  checkCudaErrors(cudaDeviceSynchronize());
-  
-  checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.N*sizeof(double),cudaMemcpyDeviceToHost));
-  
-  double max_diff_csr_cuda = check_result(matrix_csr.M, y0, y);
-  
-
   /* CSR Serial*/
   double tmlt_csr_serial = 1e100;
   timer->start();
