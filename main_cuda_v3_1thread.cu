@@ -113,7 +113,7 @@ int main(int argc, char** argv)
 
   double mflops_ell_serial2 = (2.0e-6)*matrix_csr.NNZ/(timer->getTime()/1000);
   fprintf(stdout,"[ELL 2] with X thread: time %lf  MFLOPS %lf max_diff %lf\n",
-	  timer->getTime(),mflops_ell_serial2, max_diff_csr_cuda); 
+	  timer->getTime(),mflops_ell_serial2, max_diff_ell_serial); 
   /* END ELLPACK Serial */
 
   /* ================================== */
