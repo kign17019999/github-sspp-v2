@@ -26,6 +26,8 @@ int check_result(int M, double* y0, double* y);
 
 __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* y);
+ __global__ void gpuMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int* JA,
+ const double* AZ, const double* x, double* y);
 
 
 int main(int argc, char** argv) 
@@ -68,7 +70,7 @@ int main(int argc, char** argv)
     x[row] = 100.0f * ((double) rand()) / RAND_MAX;      
   }
   double t1, t2;
-  fprintf(stdout,"Matrix-Vector product of size %d x %d\n", matrix_csr.M, matrix_csr.N);
+  fprintf(stdout,"Matrix-Vector product of %s of size %d x %d\n", matrix_file, matrix_csr.M, matrix_csr.N);
 
   /* CSR Serial*/
   t1 = wtime();
@@ -137,14 +139,22 @@ int main(int argc, char** argv)
   gpuMatrixVectorCSR<<<GRID_DIM, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
   checkCudaErrors(cudaDeviceSynchronize());
   timer->stop();
-
   checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.N*sizeof(double),cudaMemcpyDeviceToHost));
-
   double mflops_csr_cuda = (2.0e-6)*matrix_csr.NNZ/(timer->getTime());
   double max_diff_csr_cuda = check_result(matrix_csr.M, y0, y);
-  
   fprintf(stdout,"[CSR cuda] with X thread: time %lf  MFLOPS %lf max_diff %lf\n",
 	  timer->getTime(),mflops_csr_cuda, max_diff_csr_cuda);
+
+  timer->reset();
+  timer->start();
+  gpuMatrixVectorELL<<<GRID_DIM, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, d_ell_MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
+  checkCudaErrors(cudaDeviceSynchronize());
+  timer->stop();
+  checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.N*sizeof(double),cudaMemcpyDeviceToHost));
+  double mflops_ell_cuda = (2.0e-6)*matrix_csr.NNZ/(timer->getTime());
+  double max_diff_ell_cuda = check_result(matrix_csr.M, y0, y);
+  fprintf(stdout,"[ELL cuda] with X thread: time %lf  MFLOPS %lf max_diff %lf\n",
+	  timer->getTime(),mflops_ell_cuda, max_diff_ell_cuda);
 
   /* ================================== */
 
@@ -280,12 +290,28 @@ __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
   int tr = threadIdx.x;
   int row = blockIdx.x*blockDim.x + tr;
   if (row < M) {
-    //for (row = 0; row < M; row++) {
-      double t = 0;
-      for (int col = IRP[row]; col < IRP[row+1]; col++) {
-        t += AZ[col] * x[JA[col]];
+    double t = 0;
+    for (int col = IRP[row]; col < IRP[row+1]; col++) {
+      t += AZ[col] * x[JA[col]];
+    }
+    y[row] = t;
+  }
+}
+
+__global__ void gpuMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int* JA,
+ const double* AZ, const double* x, double* y)
+{
+  int tr = threadIdx.x;
+  int row = blockIdx.x*blockDim.x + tr;
+  if (row < M) {
+    double t = 0;
+    for (int col = 0; col < MAXNZ; col++) {
+      int ja_idx = row * MAXNZ + col;
+      if (col >= NNZ || JA[ja_idx] < 0) {
+        break;
       }
-      y[row] = t;
-    //}
+      t += AZ[ja_idx] * x[JA[ja_idx]];
+    }
+    y[row] = t;
   }
 }
