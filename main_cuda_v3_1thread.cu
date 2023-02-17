@@ -13,6 +13,7 @@ const dim3 BLOCK_DIM(BD);
 #include "wtime.h"
 #include "read_csr.h"
 #include "read_ellpack.h"
+inline double dmin ( double a, double b ) { return a < b ? a : b; }
 
 void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* y);
@@ -32,6 +33,11 @@ __global__ void gpuMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int* 
 
 int main(int argc, char** argv) 
 {
+  // Create the CUDA SDK timer.
+  StopWatchInterface* timer = 0;
+  sdkCreateTimer(&timer);
+  timer->reset();
+
   printf("run from file %s\n", argv[0]);
   char* matrix_file = "matrices/cage4.mtx"; // set default file name
   if (argc == 2) {
@@ -72,27 +78,51 @@ int main(int argc, char** argv)
   double t1, t2;
   fprintf(stdout,"Matrix-Vector product of %s of size %d x %d\n", matrix_file, matrix_csr.M, matrix_csr.N);
 
+  
+  gpuMatrixVectorCSR<<<GRID_DIM, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
+  checkCudaErrors(cudaDeviceSynchronize());
+  
+  checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.N*sizeof(double),cudaMemcpyDeviceToHost));
+  
+  double max_diff_csr_cuda = check_result(matrix_csr.M, y0, y);
+  
+
   /* CSR Serial*/
+  double tmlt_csr_serial = 1e100;
+  timer->start();
   t1 = wtime();
   MatrixVectorCSR(matrix_csr.M, matrix_csr.N, matrix_csr.IRP, matrix_csr.JA,
    matrix_csr.AZ, x, y0);
   t2 = wtime();
-  double tmlt_csr_serial = (t2-t1);
+  timer->stop();
+  tmlt_csr_serial = dmin(tmlt_csr_serial,(t2-t1));
   double mflops_csr_serial = (2.0e-6)*matrix_csr.NNZ/tmlt_csr_serial;
   fprintf(stdout,"[CSR] with 1 thread: time %lf  MFLOPS %lf \n",
 	  tmlt_csr_serial,mflops_csr_serial);
+
+  double mflops_csr_serial2 = (2.0e-6)*matrix_csr.NNZ/(timer->getTime()/1000);
+  fprintf(stdout,"[CSR 2] with X thread: time %lf  MFLOPS %lf\n",
+	  timer->getTime(),mflops_csr_serial2);
+  
   /* END CSR Serial */
 
   /* ELLPACK Serial */
+  double tmlt_ell_serial = 1e100;
+  timer->start();
   t1 = wtime();
   MatrixVectorELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ,
    matrix_ellpack.MAXNZ, matrix_ellpack.JA, matrix_ellpack.AZ, x, y);
   t2 = wtime();
-  double tmlt_ell_serial = (t2-t1);
+  timer->stop();
+  tmlt_ell_serial = dmin(tmlt_ell_serial,(t2-t1));
   double mflops_ell_serial = (2.0e-6)*matrix_ellpack.NNZ/tmlt_ell_serial;
   double max_diff_ell_serial = check_result(matrix_csr.M, y0, y);
   fprintf(stdout,"[ELL] with 1 thread: time %lf  MFLOPS %lf max_diff %lf\n",
 	  tmlt_ell_serial,mflops_ell_serial, max_diff_ell_serial);
+
+  double mflops_ell_serial2 = (2.0e-6)*matrix_csr.NNZ/(timer->getTime()/1000);
+  fprintf(stdout,"[ELL 2] with X thread: time %lf  MFLOPS %lf max_diff %lf\n",
+	  timer->getTime(),mflops_ell_serial2, max_diff_csr_cuda); 
   /* END ELLPACK Serial */
 
   /* ================================== */
@@ -130,17 +160,13 @@ int main(int argc, char** argv)
 
   const dim3 GRID_DIM((matrix_csr.M - 1 + BLOCK_DIM.x)/ BLOCK_DIM.x  ,1);
   printf("grid dim = %d , block dim = %d \n",GRID_DIM.x,BLOCK_DIM.x);
-  // Create the CUDA SDK timer.
-  StopWatchInterface* timer = 0;
-  sdkCreateTimer(&timer);
-  timer->reset();
 
   timer->start();
   gpuMatrixVectorCSR<<<GRID_DIM, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
   checkCudaErrors(cudaDeviceSynchronize());
   timer->stop();
   checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.N*sizeof(double),cudaMemcpyDeviceToHost));
-  double mflops_csr_cuda = (2.0e-6)*matrix_csr.NNZ/(timer->getTime());
+  double mflops_csr_cuda = (2.0e-6)*matrix_csr.NNZ/(timer->getTime()/1000);
   double max_diff_csr_cuda = check_result(matrix_csr.M, y0, y);
   fprintf(stdout,"[CSR cuda] with X thread: time %lf  MFLOPS %lf max_diff %lf\n",
 	  timer->getTime(),mflops_csr_cuda, max_diff_csr_cuda);
@@ -151,7 +177,7 @@ int main(int argc, char** argv)
   checkCudaErrors(cudaDeviceSynchronize());
   timer->stop();
   checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.N*sizeof(double),cudaMemcpyDeviceToHost));
-  double mflops_ell_cuda = (2.0e-6)*matrix_csr.NNZ/(timer->getTime());
+  double mflops_ell_cuda = (2.0e-6)*matrix_csr.NNZ/(timer->getTime()/1000);
   double max_diff_ell_cuda = check_result(matrix_csr.M, y0, y);
   fprintf(stdout,"[ELL cuda] with X thread: time %lf  MFLOPS %lf max_diff %lf\n",
 	  timer->getTime(),mflops_ell_cuda, max_diff_ell_cuda);
