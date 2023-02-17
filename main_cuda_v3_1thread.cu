@@ -147,7 +147,7 @@ int main(int argc, char** argv)
 
   timer->reset();
   timer->start();
-  gpuMatrixVectorELL<<<GRID_DIM, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, d_ell_MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
+  gpuMatrixVectorELL<<<GRID_DIM, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
   checkCudaErrors(cudaDeviceSynchronize());
   timer->stop();
   checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.N*sizeof(double),cudaMemcpyDeviceToHost));
@@ -175,7 +175,7 @@ void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
   int row, col;
   double t;
   for (row = 0; row < M; row++) {
-      double t = 0;
+      t = 0;
       for (col = IRP[row]; col < IRP[row+1]; col++) {
           t += AZ[col] * x[JA[col]];
       }
