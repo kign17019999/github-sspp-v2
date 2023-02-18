@@ -1,0 +1,21 @@
+#define BD 256
+const dim3 BLOCK_DIM(BD);
+...
+const dim3 GRID_DIM((matrix_csr.M - 1 + BLOCK_DIM.x)/ BLOCK_DIM.x  ,1);
+gpuMatrixVectorCSR<<<GRID_DIM, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
+.
+.
+.
+__global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
+ const double* AZ, const double* x, double* y)
+{
+  int tr = threadIdx.x;
+  int row = blockIdx.x*blockDim.x + tr;
+  if (row < M) {
+    double t = 0;
+    for (int col = IRP[row]; col < IRP[row+1]; col++) {
+      t += AZ[col] * x[JA[col]];
+    }
+    y[row] = t;
+  }
+}
