@@ -152,10 +152,10 @@ int main(int argc, char** argv)
   fprintf(stdout,"[CSR cuda] with X thread: time %lf  MFLOPS %lf max_diff %lf\n",
 	  timer->getTime(),mflops_csr_cuda, max_diff_csr_cuda);
 
-  const dim3 GRID_DIM((matrix_ell.M - 1 + BLOCK_DIM.x) / BLOCK_DIM.x, 1);
+  GRID_DIM((matrix_csr.M - 1 + BLOCK_DIM.x) / BLOCK_DIM.x, 1);
   printf("grid dim = %d , block dim = %d \n",GRID_DIM.x,BLOCK_DIM.x);
 
-  size_t shared_mem_size = BLOCK_DIM.x * sizeof(double);
+  shared_mem_size = BLOCK_DIM.x * sizeof(double);
 
   timer->reset();
   timer->start();
