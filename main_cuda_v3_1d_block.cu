@@ -162,7 +162,7 @@ int main(int argc, char** argv)
   gpuMatrixVectorELL<<<GRID_DIM_ELL, BLOCK_DIM>>>(matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
   checkCudaErrors(cudaDeviceSynchronize());
   timer->stop();
-  checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.N*sizeof(double),cudaMemcpyDeviceToHost));
+  checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.M*sizeof(double),cudaMemcpyDeviceToHost));
   double mflops_ell_cuda = (2.0e-6)*matrix_csr.NNZ/(timer->getTime()/1000);
   double max_diff_ell_cuda = check_result(matrix_csr.M, y0, y);
   fprintf(stdout,"[ELL cuda] with X thread: time %lf  MFLOPS %lf max_diff %lf\n",
