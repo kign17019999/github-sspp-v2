@@ -318,11 +318,11 @@ __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA, 
       t += AZ[col] * sdata[JA[col]];
     }
     sdata[tid] = t;
-    int prev_stride=num_threads / 2;
+    int prev_stride = num_threads/2;
     // Perform row-reduction operation to sum t across all threads in the block
-    for (int stride = num_threads / 2; stride > 0; stride >>= 1) {
+    for (int stride = num_threads/2; stride > 0; stride >>= 1) {
       if (tid < stride) {
-        if(tid == stride -1 && previous_stride%2==1){
+        if(tid == stride -1 && prev_stride%2==1){
           sdata[tid] += sdata[tid + stride] + sdata[tid + stride +1];
         }else{
           sdata[tid] += sdata[tid + stride];
