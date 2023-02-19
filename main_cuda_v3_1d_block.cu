@@ -151,7 +151,7 @@ int main(int argc, char** argv)
   double mflops_csr_cuda = (2.0e-6)*matrix_csr.NNZ/(timer->getTime()/1000);
   double max_diff_csr_cuda = check_result(matrix_csr.M, y0, y);
   fprintf(stdout,"[CSR cuda] with X thread: time %lf  MFLOPS %lf max_diff %lf\n",
-	  timer->getTime(),mflops_csr_cuda, max_diff_csr_cuda);
+	  timer->getTime()/1000,mflops_csr_cuda, max_diff_csr_cuda);
 
   const dim3 GRID_DIM_ELL((matrix_csr.M - 1 + BLOCK_DIM.x) / BLOCK_DIM.x, 1);
   printf("grid dim = %d , block dim = %d \n",GRID_DIM_ELL.x,BLOCK_DIM.x);
@@ -166,7 +166,7 @@ int main(int argc, char** argv)
   double mflops_ell_cuda = (2.0e-6)*matrix_csr.NNZ/(timer->getTime()/1000);
   double max_diff_ell_cuda = check_result(matrix_csr.M, y0, y);
   fprintf(stdout,"[ELL cuda] with X thread: time %lf  MFLOPS %lf max_diff %lf\n",
-	  timer->getTime(),mflops_ell_cuda, max_diff_ell_cuda);
+	  timer->getTime()/1000,mflops_ell_cuda, max_diff_ell_cuda);
 
   /* ============== ^^^^^^ ==================== */
 
@@ -372,7 +372,7 @@ __global__ void gpuMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int* 
 
     // Thread 0 writes the final result to global memory
     if (tid == 0) {
-      y[row] = sdata[0];
+      y[row] = sdata[tid];
     }
   }
 }
