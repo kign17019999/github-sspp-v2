@@ -38,7 +38,7 @@ int main(int argc, char** argv)
   sdkCreateTimer(&timer);
   timer->reset();
 
-  printf("run from file %s\n", argv[0]);
+  printf("[last] run from file %s\n", argv[0]);
   char* matrix_file = "matrices/cage4.mtx"; // set default file name
   if (argc == 2) {
     matrix_file = argv[1];
@@ -307,9 +307,9 @@ __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA, 
   extern __shared__ double sdata[]; // Allocate shared memory for vector x
 
   // Copy vector x to shared memory
-  for (int i = tid; i < N; i += num_threads) {
-    sdata[i] = x[i];
-  }
+  // for (int i = tid; i < N; i += num_threads) {
+  //   sdata[i] = x[i];
+  // }
   __syncthreads(); // Wait for all threads to finish copying
 
   if (row < M) {
@@ -317,13 +317,19 @@ __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA, 
     for (int col = IRP[row]; col < IRP[row+1]; col++) {
       t += AZ[col] * sdata[JA[col]];
     }
-
+    sdata[tid] = t;
+    int prev_stride=num_threads / 2;
     // Perform row-reduction operation to sum t across all threads in the block
     for (int stride = num_threads / 2; stride > 0; stride >>= 1) {
       if (tid < stride) {
-        sdata[tid] += sdata[tid + stride];
+        if(tid == stride -1 && previous_stride%2==1){
+          sdata[tid] += sdata[tid + stride] + sdata[tid + stride +1];
+        }else{
+          sdata[tid] += sdata[tid + stride];
+        }
       }
       __syncthreads();
+      prev_stride=stride;
     }
 
     // Thread 0 writes the final result to global memory
@@ -363,6 +369,52 @@ __global__ void gpuMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int* 
     // Thread 0 writes the final result to global memory
     if (tid == 0) {
       y[row] = sdata[0];
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+///////////
+__global__ void gpuMatrixVectorCSR_old(int M, int N, const int* IRP, const int* JA, const double* AZ, const double* x, double* y)
+{
+  int row = blockIdx.x;
+  int tid = threadIdx.x;
+  int num_threads = blockDim.x;
+
+  extern __shared__ double sdata[]; // Allocate shared memory for vector x
+
+  // Copy vector x to shared memory
+  for (int i = tid; i < N; i += num_threads) {
+    sdata[i] = x[i];
+  }
+  __syncthreads(); // Wait for all threads to finish copying
+
+  if (row < M) {
+    double t = 0;
+    for (int col = IRP[row]; col < IRP[row+1]; col++) {
+      t += AZ[col] * sdata[JA[col]];
+    }
+
+    // Perform row-reduction operation to sum t across all threads in the block
+    for (int stride = num_threads / 2; stride > 0; stride >>= 1) {
+      if (tid < stride) {
+        sdata[tid] += sdata[tid + stride];
+      }
+      __syncthreads();
+    }
+
+    // Thread 0 writes the final result to global memory
+    if (tid == 0) {
+      y[row] = t;
     }
   }
 }
