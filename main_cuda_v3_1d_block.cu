@@ -334,7 +334,7 @@ __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA, 
 
     // Thread 0 writes the final result to global memory
     if (tid == 0) {
-      y[row] = t;
+      y[row] = sdata[tid];
     }
   }
 }
