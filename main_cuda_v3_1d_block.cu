@@ -343,10 +343,7 @@ __global__ void gpuMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int* 
 
   if (row < M) {
     double t = 0;
-    int start_col = tid * (MAXNZ / num_threads);
-    int end_col = (tid + 1) * (MAXNZ / num_threads) - 1;
-    if (end_col >= MAXNZ) end_col = MAXNZ - 1;
-    for (int col = start_col; col <= end_col; col++) {
+    for (int col = tid; col < MAXNZ; col += num_threads) {
       int ja_idx = row * MAXNZ + col;
       if (col >= NNZ || JA[ja_idx] < 0) {
         break;
