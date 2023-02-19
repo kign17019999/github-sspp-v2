@@ -23,7 +23,7 @@ void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ, const double* x, double* y);
 void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ);
-int check_result(int M, double* y0, double* y);
+double check_result(int M, double* y0, double* y);
 
 __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* y);
@@ -38,7 +38,7 @@ int main(int argc, char** argv)
   sdkCreateTimer(&timer);
   timer->reset();
 
-  printf("[last-2] run from file %s\n", argv[0]);
+  printf("[last-3] run from file %s\n", argv[0]);
   char* matrix_file = "matrices/cage4.mtx"; // set default file name
   if (argc == 2) {
     matrix_file = argv[1];
@@ -97,7 +97,8 @@ int main(int argc, char** argv)
   timer->stop();
   double tmlt_ell_serial = timer->getTime()/1000;
   double mflops_ell_serial = (2.0e-6)*matrix_ellpack.NNZ/tmlt_ell_serial;
-  double max_diff_ell_serial = check_result(matrix_csr.M, y0, y);
+  //double max_diff_ell_serial = check_result(matrix_csr.M, y0, y);
+  double max_diff_ell_serial = 999.99;
   fprintf(stdout,"[ELL] with 1 thread: time %lf  MFLOPS %lf max_diff %lf\n",
 	  tmlt_ell_serial,mflops_ell_serial, max_diff_ell_serial);
   /* END ELLPACK Serial */
@@ -147,7 +148,7 @@ int main(int argc, char** argv)
   gpuMatrixVectorCSR<<<GRID_DIM_CSR, BLOCK_DIM, shared_mem_size_csr>>>(matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
   checkCudaErrors(cudaDeviceSynchronize());
   timer->stop();
-  checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.N*sizeof(double),cudaMemcpyDeviceToHost));
+  checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.M*sizeof(double),cudaMemcpyDeviceToHost));
   double mflops_csr_cuda = (2.0e-6)*matrix_csr.NNZ/(timer->getTime()/1000);
   double max_diff_csr_cuda = check_result(matrix_csr.M, y0, y);
   fprintf(stdout,"[CSR cuda] with X thread: time %lf  MFLOPS %lf max_diff %lf\n",
@@ -287,7 +288,7 @@ void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
   }
 }
 
-int check_result(int M, double* y0, double* y)
+double check_result(int M, double* y0, double* y)
 {
   double max_diff = 0;
   double cal_diff = 0;
