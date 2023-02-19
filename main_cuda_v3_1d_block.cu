@@ -315,7 +315,7 @@ __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA, 
   if (row < M) {
     double t = 0;
     for (int col = IRP[row]; col < IRP[row+1]; col++) {
-      t += AZ[col] * sdata[JA[col]];
+      t += AZ[col] * x[JA[col]];
     }
     sdata[tid] = t;
     int prev_stride = num_threads/2;
