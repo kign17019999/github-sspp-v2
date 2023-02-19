@@ -38,7 +38,7 @@ int main(int argc, char** argv)
   sdkCreateTimer(&timer);
   timer->reset();
 
-  printf("[last] run from file %s\n", argv[0]);
+  printf("[last-2] run from file %s\n", argv[0]);
   char* matrix_file = "matrices/cage4.mtx"; // set default file name
   if (argc == 2) {
     matrix_file = argv[1];
@@ -310,14 +310,16 @@ __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA, 
   // for (int i = tid; i < N; i += num_threads) {
   //   sdata[i] = x[i];
   // }
-  __syncthreads(); // Wait for all threads to finish copying
+  //__syncthreads(); // Wait for all threads to finish copying
 
   if (row < M) {
-    double t = 0;
+    sdata[tid]=0.0;
+    double t = 0.0;
     for (int col = IRP[row]; col < IRP[row+1]; col++) {
       t += AZ[col] * x[JA[col]];
     }
     sdata[tid] = t;
+    __syncthreads();
     int prev_stride = num_threads/2;
     // Perform row-reduction operation to sum t across all threads in the block
     for (int stride = num_threads/2; stride > 0; stride >>= 1) {
