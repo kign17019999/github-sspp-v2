@@ -97,10 +97,9 @@ int main(int argc, char** argv)
   timer->stop();
   double tmlt_ell_serial = timer->getTime()/1000;
   double mflops_ell_serial = (2.0e-6)*matrix_ellpack.NNZ/tmlt_ell_serial;
-  //double max_diff_ell_serial = check_result(matrix_csr.M, y0, y);
-  double max_diff_ell_serial = 999.99;
-  fprintf(stdout,"[ELL] with 1 thread: time %lf  MFLOPS %lf max_diff %lf\n",
-	  tmlt_ell_serial,mflops_ell_serial, max_diff_ell_serial);
+  double max_diff_ell_serial = check_result(matrix_csr.M, y0, y);
+  fprintf(stdout,"[ELL] with 1 thread: time %lf  MFLOPS %lf max_diff %lf y0=%lf %lf %lf %lf %lf\n",
+	  tmlt_ell_serial,mflops_ell_serial, max_diff_ell_serial, y[0], y[1], y[2], y[3], y[4]);
   /* END ELLPACK Serial */
 
   /* =============== vvvvv =================== */
@@ -140,26 +139,28 @@ int main(int argc, char** argv)
   const dim3 GRID_DIM_CSR(matrix_csr.M, 1);
   printf("grid dim = %d , block dim = %d \n",GRID_DIM_CSR.x,BLOCK_DIM.x);
 
+  size_t shared_mem_size_csr = matrix_csr.M * sizeof(double);
+
   timer->reset();
   timer->start();
   //gpuMatrixVectorCSR<<<GRID_DIM, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
   gpuMatrixVectorCSR<<<GRID_DIM_CSR, BLOCK_DIM>>>(matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
   checkCudaErrors(cudaDeviceSynchronize());
   timer->stop();
-  
   checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.M*sizeof(double),cudaMemcpyDeviceToHost));
   double mflops_csr_cuda = (2.0e-6)*matrix_csr.NNZ/(timer->getTime()/1000);
   double max_diff_csr_cuda = check_result(matrix_csr.M, y0, y);
-  fprintf(stdout,"[CSR cuda] with X thread: time %lf  MFLOPS %lf max_diff %lf\n",
-	  timer->getTime(),mflops_csr_cuda, max_diff_csr_cuda);
-
+  fprintf(stdout,"[CSR cuda] with X thread: time %lf  MFLOPS %lf max_diff %lf y[0]=%lf %lf %lf %lf\n",
+	  timer->getTime(),mflops_csr_cuda, max_diff_csr_cuda, y[0], y[1], y[2], y[0]);
   const dim3 GRID_DIM_ELL((matrix_csr.M - 1 + BLOCK_DIM.x) / BLOCK_DIM.x, 1);
   printf("grid dim = %d , block dim = %d \n",GRID_DIM_ELL.x,BLOCK_DIM.x);
+
+  size_t shared_mem_size_ell = BLOCK_DIM.x * sizeof(double);
 
   timer->reset();
   timer->start();
   //gpuMatrixVectorELL<<<GRID_DIM, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
-  gpuMatrixVectorELL<<<GRID_DIM_ELL, BLOCK_DIM>>>(matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
+  gpuMatrixVectorELL<<<GRID_DIM_ELL, BLOCK_DIM, shared_mem_size_ell>>>(matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
   checkCudaErrors(cudaDeviceSynchronize());
   timer->stop();
   checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.N*sizeof(double),cudaMemcpyDeviceToHost));
@@ -305,15 +306,15 @@ __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA, 
   __shared__ double sdata[BD]; // Allocate shared memory for vector x
 
   if (row < M) {
+    sdata[tid]=0.0;
     double t = 0.0;
     for (int col = IRP[row] + tid; col < IRP[row+1]; col += blockDim.x) {
       t += AZ[col] * x[JA[col]];
     }
     sdata[tid] = t;
     __syncthreads();
-    
-    // Perform row-reduction operation to sum t across all threads in the block
     int prev_stride = num_threads/2;
+    // Perform row-reduction operation to sum t across all threads in the block
     for (int stride = num_threads/2; stride > 0; stride >>= 1) {
       if (tid < stride) {
         if(tid == stride -1 && prev_stride%2==1){
@@ -339,40 +340,76 @@ __global__ void gpuMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int* 
   int tid = threadIdx.x;
   int num_threads = blockDim.x;
 
-  __shared__ double sdata[BD]; // Allocate shared memory for vector x
-
   if (row < M) {
     double t = 0;
-    int start_col = tid * (MAXNZ / num_threads);
-    int end_col = (tid + 1) * (MAXNZ / num_threads) - 1;
-    if (end_col >= MAXNZ) end_col = MAXNZ - 1;
-    for (int col = start_col; col <= end_col; col++) {
+    for (int col = tid; col < MAXNZ; col += num_threads) {
       int ja_idx = row * MAXNZ + col;
       if (col >= NNZ || JA[ja_idx] < 0) {
         break;
       }
       t += AZ[ja_idx] * x[JA[ja_idx]];
     }
-    sdata[tid] = t;
-    __syncthreads();
 
     // Perform row-reduction operation to sum t across all threads in the block
-    int prev_stride = num_threads/2;
-    for (int stride = num_threads/2; stride > 0; stride >>= 1) {
+    extern __shared__ double sdata[]; // Allocate shared memory for row sums
+    sdata[tid] = t;
+
+    for (int stride = num_threads / 2; stride > 0; stride >>= 1) {
       if (tid < stride) {
-        if(tid == stride -1 && prev_stride%2==1){
-          sdata[tid] += sdata[tid + stride] + sdata[tid + stride +1];
-        }else{
-          sdata[tid] += sdata[tid + stride];
-        }
+        sdata[tid] += sdata[tid + stride];
       }
       __syncthreads();
-      prev_stride=stride;
     }
 
     // Thread 0 writes the final result to global memory
     if (tid == 0) {
       y[row] = sdata[0];
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+///////////
+__global__ void gpuMatrixVectorCSR_old(int M, int N, const int* IRP, const int* JA, const double* AZ, const double* x, double* y)
+{
+  int row = blockIdx.x;
+  int tid = threadIdx.x;
+  int num_threads = blockDim.x;
+
+  extern __shared__ double sdata[]; // Allocate shared memory for vector x
+
+  // Copy vector x to shared memory
+  for (int i = tid; i < N; i += num_threads) {
+    sdata[i] = x[i];
+  }
+  __syncthreads(); // Wait for all threads to finish copying
+
+  if (row < M) {
+    double t = 0;
+    for (int col = IRP[row]; col < IRP[row+1]; col++) {
+      t += AZ[col] * sdata[JA[col]];
+    }
+
+    // Perform row-reduction operation to sum t across all threads in the block
+    for (int stride = num_threads / 2; stride > 0; stride >>= 1) {
+      if (tid < stride) {
+        sdata[tid] += sdata[tid + stride];
+      }
+      __syncthreads();
+    }
+
+    // Thread 0 writes the final result to global memory
+    if (tid == 0) {
+      y[row] = t;
     }
   }
 }
