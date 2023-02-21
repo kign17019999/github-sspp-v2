@@ -102,7 +102,7 @@ int main(int argc, char** argv)
 	  tmlt_ell_serial,mflops_ell_serial, max_diff_ell_serial);
   /* END ELLPACK Serial */
 
-  /* ================================== */
+  /* =============== vvvvv =================== */
 
   int *d_M, *d_N, *d_NNZ;
   int *d_ell_MAXNZ;
@@ -135,6 +135,8 @@ int main(int argc, char** argv)
   checkCudaErrors(cudaMalloc((void**) &d_y, (matrix_csr.M) * sizeof(double)));
   checkCudaErrors(cudaMemcpy(d_x, x, matrix_csr.N * sizeof(double), cudaMemcpyHostToDevice));
 
+  /* ============== xxxxxxxxxxxxxxxxx ==================== */
+/*
   const dim3 GRID_DIM((matrix_csr.M - 1 + BLOCK_DIM.x)/ BLOCK_DIM.x  ,1);
   printf("grid dim = %d , block dim = %d \n",GRID_DIM.x,BLOCK_DIM.x);
 
@@ -147,6 +149,8 @@ int main(int argc, char** argv)
   double max_diff_csr_cuda = check_result(matrix_csr.M, y0, y);
   fprintf(stdout,"[CSR cuda] with X thread: time %lf  MFLOPS %lf max_diff %lf\n",
 	  timer->getTime(),mflops_csr_cuda, max_diff_csr_cuda);
+*/
+  /* ============== xxxxxxxxxxxxxxxxx ==================== */
 
   timer->reset();
   timer->start();
@@ -159,7 +163,7 @@ int main(int argc, char** argv)
   fprintf(stdout,"[ELL cuda] with X thread: time %lf  MFLOPS %lf max_diff %lf\n",
 	  timer->getTime(),mflops_ell_cuda, max_diff_ell_cuda);
 
-  /* ================================== */
+  /* ============== ^^^^^^ ==================== */
 
   free(matrix_csr.IRP);
   free(matrix_csr.JA);

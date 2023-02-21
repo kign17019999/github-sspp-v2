@@ -134,6 +134,8 @@ int main(int argc, char** argv)
   checkCudaErrors(cudaMalloc((void**) &d_x, (matrix_csr.N) * sizeof(double)));
   checkCudaErrors(cudaMalloc((void**) &d_y, (matrix_csr.M) * sizeof(double)));
   checkCudaErrors(cudaMemcpy(d_x, x, matrix_csr.N * sizeof(double), cudaMemcpyHostToDevice));
+
+  /* ============== xxxxxxxxxxxxxxxxx ==================== */
 /*
   //const dim3 GRID_DIM((matrix_csr.M - 1 + BLOCK_DIM.x)/ BLOCK_DIM.x  ,1);
   const dim3 GRID_DIM_CSR(matrix_csr.M, 1);
@@ -152,6 +154,8 @@ int main(int argc, char** argv)
   fprintf(stdout,"[CSR cuda] with X thread: time %lf  MFLOPS %lf max_diff %lf\n",
 	  timer->getTime()/1000,mflops_csr_cuda, max_diff_csr_cuda);
 */
+  /* ============== xxxxxxxxxxxxxxxxx ==================== */
+
   const dim3 GRID_DIM_ELL((matrix_csr.M - 1 + BLOCK_DIM.x) / BLOCK_DIM.x, 1);
   printf("grid dim = %d , block dim = %d \n",GRID_DIM_ELL.x,BLOCK_DIM.x);
 
