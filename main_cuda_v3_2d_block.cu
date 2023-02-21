@@ -322,9 +322,9 @@ __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA, 
     for (int stride = num_threads_per_row/2; stride > 0; stride >>= 1) {
       if (tid_c < stride) {
         if(tid_c == stride -1 && prev_stride%2==1){
-          sdata[tid_r][tid_c] += sdata[tid_r][tid + stride] + sdata[tid_r][tid + stride +1];
+          sdata[tid_r][tid_c] += sdata[tid_r][tid_c + stride] + sdata[tid_r][tid_c + stride +1];
         }else{
-          sdata[tid_r][tid_c] += sdata[tid_r][tid + stride];
+          sdata[tid_r][tid_c] += sdata[tid_r][tid_c + stride];
         }
       }
       __syncthreads();
