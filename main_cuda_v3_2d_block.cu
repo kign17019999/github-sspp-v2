@@ -302,7 +302,7 @@ double check_result(int M, double* y0, double* y)
 
 __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA, const double* AZ, const double* x, double* y)
 {
-  int row = blockIdx.x*blockDim.y + tr;
+  int row = blockIdx.x*blockDim.y + threadIdx.y;
   int tid_c = threadIdx.x;
   int tid_r = threadIdx.y;
   int num_threads_per_row = blockDim.x;
@@ -311,17 +311,17 @@ __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA, 
 
   if (row < M) {
     double t = 0.0;
-    for (int col = IRP[row] + tid; col < IRP[row+1]; col += blockDim.x) {
+    for (int col = IRP[row] + tid_c; col < IRP[row+1]; col += blockDim.x) {
       t += AZ[col] * x[JA[col]];
     }
     sdata[tid_r][tid_c] = t;
     __syncthreads();
     
     // Perform row-reduction operation to sum t across all threads in the block
-    int prev_stride = num_threads/2;
-    for (int stride = num_threads/2; stride > 0; stride >>= 1) {
-      if (tid < stride) {
-        if(tid == stride -1 && prev_stride%2==1){
+    int prev_stride = num_threads_per_row/2;
+    for (int stride = num_threads_per_row/2; stride > 0; stride >>= 1) {
+      if (tid_c < stride) {
+        if(tid_c == stride -1 && prev_stride%2==1){
           sdata[tid_r][tid_c] += sdata[tid_r][tid + stride] + sdata[tid_r][tid + stride +1];
         }else{
           sdata[tid_r][tid_c] += sdata[tid_r][tid + stride];
