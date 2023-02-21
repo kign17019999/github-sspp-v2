@@ -90,6 +90,7 @@ int main(int argc, char** argv)
   /* END CSR Serial */
 
   /* ELLPACK Serial */
+/*  
   timer->reset();
   timer->start();
   MatrixVectorELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ,
@@ -100,6 +101,7 @@ int main(int argc, char** argv)
   double max_diff_ell_serial = check_result(matrix_csr.M, y0, y);
   fprintf(stdout,"[ELL] with 1 thread: time %lf  MFLOPS %lf max_diff %lf\n",
 	  tmlt_ell_serial,mflops_ell_serial, max_diff_ell_serial);
+*/
   /* END ELLPACK Serial */
 
   /* =============== vvvvv =================== */
