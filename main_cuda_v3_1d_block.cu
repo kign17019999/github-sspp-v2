@@ -151,10 +151,10 @@ int main(int argc, char** argv)
   double max_diff_csr_cuda = check_result(matrix_csr.M, y0, y);
   fprintf(stdout,"[CSR cuda] with X thread: time %lf  MFLOPS %lf max_diff %lf\n",
 	  timer->getTime()/1000,mflops_csr_cuda, max_diff_csr_cuda);
-
+*/
   const dim3 GRID_DIM_ELL((matrix_csr.M - 1 + BLOCK_DIM.x) / BLOCK_DIM.x, 1);
   printf("grid dim = %d , block dim = %d \n",GRID_DIM_ELL.x,BLOCK_DIM.x);
-*/
+
   timer->reset();
   timer->start();
   //gpuMatrixVectorELL<<<GRID_DIM, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
