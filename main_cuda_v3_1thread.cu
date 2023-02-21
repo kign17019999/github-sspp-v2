@@ -137,11 +137,11 @@ int main(int argc, char** argv)
 
   /* ============== xxxxxxxxxxxxxxxxx ==================== */
 /*
-  const dim3 GRID_DIM((matrix_csr.M - 1 + BLOCK_DIM.x)/ BLOCK_DIM.x  ,1);
-  printf("grid dim = %d , block dim = %d \n",GRID_DIM.x,BLOCK_DIM.x);
+  const dim3 GRID_DIM_CSR((matrix_csr.M - 1 + BLOCK_DIM.x)/ BLOCK_DIM.x, 1);
+  printf("grid dim = %d , block dim = %d \n",GRID_DIM_CSR.x,BLOCK_DIM.x);
 
   timer->start();
-  gpuMatrixVectorCSR<<<GRID_DIM, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
+  gpuMatrixVectorCSR<<<GRID_DIM_CSR, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
   checkCudaErrors(cudaDeviceSynchronize());
   timer->stop();
   checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.N*sizeof(double),cudaMemcpyDeviceToHost));
@@ -152,9 +152,12 @@ int main(int argc, char** argv)
 */
   /* ============== xxxxxxxxxxxxxxxxx ==================== */
 
+  const dim3 GRID_DIM_ELL((matrix_csr.M - 1 + BLOCK_DIM.x)/ BLOCK_DIM.x, 1);
+  printf("grid dim = %d , block dim = %d \n",GRID_DIM_ELL.x,BLOCK_DIM.x);
+  
   timer->reset();
   timer->start();
-  gpuMatrixVectorELL<<<GRID_DIM, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
+  gpuMatrixVectorELL<<<GRID_DIM_ELL, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
   checkCudaErrors(cudaDeviceSynchronize());
   timer->stop();
   checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.N*sizeof(double),cudaMemcpyDeviceToHost));

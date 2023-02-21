@@ -137,7 +137,6 @@ int main(int argc, char** argv)
 
   /* ============== xxxxxxxxxxxxxxxxx ==================== */
 /*
-  //const dim3 GRID_DIM((matrix_csr.M - 1 + BLOCK_DIM.x)/ BLOCK_DIM.x  ,1);
   const dim3 GRID_DIM_CSR(matrix_csr.M, 1);
   printf("grid dim = %d , block dim = %d \n",GRID_DIM_CSR.x,BLOCK_DIM.x);
 
