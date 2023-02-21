@@ -97,8 +97,7 @@ int main(int argc, char** argv)
   timer->stop();
   double tmlt_ell_serial = timer->getTime()/1000;
   double mflops_ell_serial = (2.0e-6)*matrix_ellpack.NNZ/tmlt_ell_serial;
-  //double max_diff_ell_serial = check_result(matrix_csr.M, y0, y);
-  double max_diff_ell_serial = 999.99;
+  double max_diff_ell_serial = check_result(matrix_csr.M, y0, y);
   fprintf(stdout,"[ELL] with 1 thread: time %lf  MFLOPS %lf max_diff %lf\n",
 	  tmlt_ell_serial,mflops_ell_serial, max_diff_ell_serial);
   /* END ELLPACK Serial */
