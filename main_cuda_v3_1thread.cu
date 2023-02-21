@@ -38,7 +38,7 @@ int main(int argc, char** argv)
   sdkCreateTimer(&timer);
   timer->reset();
 
-  printf("run from file %s\n", argv[0]);
+  printf("========= run from file %s =========\n", argv[0]);
   char* matrix_file = "matrices/cage4.mtx"; // set default file name
   if (argc == 2) {
     matrix_file = argv[1];
