@@ -140,7 +140,7 @@ int main(int argc, char** argv)
   checkCudaErrors(cudaMemcpy(d_x, x, matrix_csr.N * sizeof(double), cudaMemcpyHostToDevice));
 
   /* ============== xxxxxxxxxxxxxxxxx ==================== */
-/*
+
   const dim3 GRID_DIM_CSR((matrix_csr.M-1+BLOCK_DIM.y)/BLOCK_DIM.y, 1);
   printf("grid dim = %d , block dim = %d \n",GRID_DIM_CSR.x,BLOCK_DIM.x);
 
@@ -156,12 +156,13 @@ int main(int argc, char** argv)
   double max_diff_csr_cuda = check_result(matrix_csr.M, y0, y);
   fprintf(stdout,"[CSR cuda] with X thread: time %lf  MFLOPS %lf max_diff %lf\n",
 	  timer->getTime()/1000,mflops_csr_cuda, max_diff_csr_cuda);
-*/
+
   /* ============== xxxxxxxxxxxxxxxxx ==================== */
 
-  int number_grid_for_1d_block = (matrix_csr.M - 1 + BLOCK_DIM.x) / BLOCK_DIM.x;
-  int number_grid_for_2d_block = (number_grid_for_1d_block-1+BLOCK_DIM.y)/BLOCK_DIM.y;
-  const dim3 GRID_DIM_ELL(number_grid_for_2d_block, 1);
+  // int number_grid_for_1d_block = (matrix_csr.M - 1 + BLOCK_DIM.x) / BLOCK_DIM.x;
+  // int number_grid_for_2d_block = (number_grid_for_1d_block-1+BLOCK_DIM.y)/BLOCK_DIM.y;
+  // const dim3 GRID_DIM_ELL(number_grid_for_2d_block, 1);
+  const dim3 GRID_DIM_ELL((matrix_csr.M-1+BLOCK_DIM.y)/BLOCK_DIM.y, 1);
   printf("grid dim = %d , block dim = %d \n",GRID_DIM_ELL.x,BLOCK_DIM.x);
 
   timer->reset();
