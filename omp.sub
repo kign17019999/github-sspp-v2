@@ -1,7 +1,7 @@
 #!/bin/bash
 ##
-## MPI submission script for PBS 
-## ----------------------------------
+## MPI submission script for PBS on CRESCENT
+## -----------------------------------------
 ##
 ## Follow the 5 steps below to configure. If you edit this from Windows,
 ## *before* submitting via "qsub" run "dos2unix" on this file - or you will
@@ -11,7 +11,7 @@
 ##
 ## Enter a job name after the -N on the line below:
 ##
-#PBS -N SSPP_OMP
+#PBS -N SSPP_openMP 
 ##
 ## STEP 2:
 ##
@@ -23,7 +23,7 @@
 ## STEP 3:
 ##
 ## Select correct queue:
-##    reserved   special queue for this course
+##    reserved  queue reserved for this course
 ##
 #PBS -q gpu
 ##
@@ -56,7 +56,6 @@ export cpus=`cat $PBS_NODEFILE | wc -l`
 ##
 ## STEP 5: 
 ## Run the application
-
 ./omp matrices/cant.mtx 16 128
 
 /bin/rm -f ./$PBS_JOBID
