@@ -168,7 +168,7 @@ int main(int argc, char** argv)
   timer->reset();
   timer->start();
   for(int tryloop=0; tryloop<ntimes; tryloop++){
-    gpuMatrixVectorELL<<<GRID_DIM_ELL, XBD*sizeof(double)>>>(BLOCK_DIM.x, BLOCK_DIM.y, matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
+    gpuMatrixVectorELL<<<GRID_DIM_ELL, BLOCK_DIM, XBD*sizeof(double)>>>(BLOCK_DIM.x, BLOCK_DIM.y, matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
     checkCudaErrors(cudaDeviceSynchronize());
   }
   timer->stop();
