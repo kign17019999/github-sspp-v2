@@ -63,12 +63,11 @@ export cpus=`cat $PBS_NODEFILE | wc -l`
 ##
 ## STEP 5: 
 ## Run the application
-./omp matrices/cant.mtx 16 128
 
 datasets=(cage4 Cube_Coup_dt0 FEM_3D_thermal1 mhda416 ML_Laplace thermal1 mcfe bcsstk17 thermal2 olm1000 mac_econ_fwd500 thermomech_TK adder_dcop_32 mhd4800a nlpkkt80 west2021 cop20k_A webbase-1M cavity10 raefsky2 dc1 rdist2 af23560 amazon0302 cant lung2 af_1_k101 olafu PR02R roadNet-PA)
 
 for dataset in "${datasets[@]}"; do
-    ./main_cuda_block_2d "matrices/${dataset}.mtx" 32 512
+    ./omp "matrices/${dataset}.mtx" 32 512
 done
 
 /bin/rm -f ./$PBS_JOBID
