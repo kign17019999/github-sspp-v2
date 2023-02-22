@@ -228,8 +228,8 @@ void ompMatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
 {
 #pragma omp parallel shared(M, N, IRP, JA, AZ, x, y, chunk_size)
 {
-#pragma omp for schedule(dynamic, chunk_size)
   double t;
+#pragma omp for schedule(dynamic, chunk_size)
   for (int row = 0; row < M; row++) {
       t = 0;
       for (int col = IRP[row]; col < IRP[row+1]; col++) {
@@ -246,9 +246,9 @@ void ompMatrixVectorELLomp(int M, int N, int NNZ, int MAXNZ, const int* JA,
 {
 #pragma omp parallel shared(M, N, NNZ, MAXNZ, JA, AZ, x, y, chunk_size)
 {
-#pragma omp for schedule(dynamic, chunk_size)
   double t;
   int ja_idx;
+#pragma omp for schedule(dynamic, chunk_size)
   for (int row = 0; row < M; row++) {
     t = 0;
     for (int col = 0; col < MAXNZ; col++) {
