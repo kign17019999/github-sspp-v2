@@ -19,7 +19,7 @@ void save_result_omp(char *program_name, char* matrix_file, int M, int N,
                  double time_csr_serial, double mflops_csr_serial, double max_diff_csr_serial,
                  double time_ell_serial, double mflops_ell_serial, double max_diff_ell_serial,
                  double time_csr_omp, double mflops_csr_omp, double max_diff_csr_omp,
-                 double time_ell_omp, double mflops_ell_omp, double max_diff_ell_omp)
+                 double time_ell_omp, double mflops_ell_omp, double max_diff_ell_omp);
 
 void ompMatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* restrict y) ;
