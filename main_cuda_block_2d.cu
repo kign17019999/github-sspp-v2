@@ -26,7 +26,7 @@ __global__ void gpuMatrixVectorELL(const int XBD, const int YBD, int M, int N, i
 int main(int argc, char** argv) 
 {
   char *program_name = argv[0];
-  printf("Run from file %s\n", program_name);
+  //printf("Run from file %s\n", program_name);
   char* matrix_file;
   int XBD=128;  // 2d block dimension
   int YBD=8;  // 2d block dimension 
@@ -39,7 +39,7 @@ int main(int argc, char** argv)
     printf(" Usage: %s [XBD] [YBD] \n", argv[0]);
     return -1;
   }
-
+  printf("Run from file: %s, reading matrix: %s, XBD: %d, YBD: %d\n", program_name, matrix_file, XBD, YBD);
   // Create the CUDA SDK timer.
   StopWatchInterface* timer = 0;
   sdkCreateTimer(&timer);
