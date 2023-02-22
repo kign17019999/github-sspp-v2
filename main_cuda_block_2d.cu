@@ -18,9 +18,9 @@ void save_result_cuda(char *program_name, char* matrix_file, int M, int N,
                  double time_csr_gpu, double mflops_csr_gpu, double max_diff_csr_gpu,
                  double time_ell_gpu, double mflops_ell_gpu, double max_diff_ell_gpu);
 
-__global__ void gpuMatrixVectorCSR(int XBD, int YBD, int M, int N, const int* IRP, const int* JA,
+__global__ void gpuMatrixVectorCSR(const int XBD, const int YBD, int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* y);
-__global__ void gpuMatrixVectorELL(int XBD, int YBD, int M, int N, int NNZ, int MAXNZ, const int* JA,
+__global__ void gpuMatrixVectorELL(const int XBD, const int YBD, int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ, const double* x, double* y);
 
 int main(int argc, char** argv) 
@@ -250,7 +250,7 @@ double check_result(int M, double* y0, double* y)
   return max_diff;
 }
 
-__global__ void gpuMatrixVectorCSR(int XBD, int YBD, int M, int N, const int* IRP, const int* JA, const double* AZ, const double* x, double* y)
+__global__ void gpuMatrixVectorCSR(const int XBD, const int YBD, int M, int N, const int* IRP, const int* JA, const double* AZ, const double* x, double* y)
 {
   int row = blockIdx.x*blockDim.y + threadIdx.y;
   int tid_c = threadIdx.x;
@@ -288,7 +288,7 @@ __global__ void gpuMatrixVectorCSR(int XBD, int YBD, int M, int N, const int* IR
   }
 }
 
-__global__ void gpuMatrixVectorELL(int XBD, int YBD, int M, int N, int NNZ, int MAXNZ, const int* JA, const double* AZ, const double* x, double* y)
+__global__ void gpuMatrixVectorELL(const int XBD, const int YBD, int M, int N, int NNZ, int MAXNZ, const int* JA, const double* AZ, const double* x, double* y)
 {
   int row = blockIdx.x*blockDim.y + threadIdx.y;
   int tid_c = threadIdx.x;
