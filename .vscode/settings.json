@@ -3,6 +3,8 @@
         "mmio.h": "c",
         "stdio.h": "c",
         "iostream": "cpp",
-        "memory": "cpp"
+        "memory": "cpp",
+        "read_csr.h": "c",
+        "read_ellpack.h": "c"
     }
 }
