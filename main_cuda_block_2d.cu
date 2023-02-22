@@ -134,7 +134,6 @@ int main(int argc, char** argv)
   // ---- perform parallel code in CSR format ---- //
   // Calculate the dimension of the grid of blocks
   const dim3 GRID_DIM_CSR((matrix_csr.M-1+BLOCK_DIM.y)/BLOCK_DIM.y, 1);
-  printf(" [GPU CSR] Grid dim = %d %d , Block dim = %d %d \n",GRID_DIM_CSR.x, GRID_DIM_CSR.y, BLOCK_DIM.x, BLOCK_DIM.y);
 
   timer->reset();
   timer->start();
@@ -149,13 +148,12 @@ int main(int argc, char** argv)
   double mflops_csr_gpu = (2.0e-6)*matrix_csr.NNZ/time_csr_gpu;
   double max_diff_csr_gpu = check_result(matrix_csr.M, y0, y);  // calculate a difference of result
 
-  fprintf(stdout," [GPU CSR] with CUDA: time %lf  MFLOPS %lf max_diff %lf\n",
-	  time_csr_gpu,mflops_csr_gpu, max_diff_csr_gpu);
+  fprintf(stdout," [GPU CSR] Grid dim = %d %d , Block dim = %d %d time %lf  MFLOPS %lf max_diff %lf\n",
+	  GRID_DIM_CSR.x, GRID_DIM_CSR.y, BLOCK_DIM.x, BLOCK_DIM.y, time_csr_gpu,mflops_csr_gpu, max_diff_csr_gpu);
 
   // ---- perform parallel code in ELLPACK format ---- //
   // Calculate the dimension of the grid of blocks
   const dim3 GRID_DIM_ELL((matrix_csr.M-1+BLOCK_DIM.y)/BLOCK_DIM.y, 1);
-  printf(" [GPU ELL] Grid dim = %d %d , Block dim = %d %d \n",GRID_DIM_ELL.x, GRID_DIM_ELL.y, BLOCK_DIM.x, BLOCK_DIM.y);
 
   timer->reset();
   timer->start();
@@ -170,8 +168,8 @@ int main(int argc, char** argv)
   double mflops_ell_gpu = (2.0e-6)*matrix_csr.NNZ/time_ell_gpu;
   double max_diff_ell_gpu = check_result(matrix_csr.M, y0, y);  // calculate a difference of result
 
-  fprintf(stdout," [GPU ELL] with CUDA: time %lf  MFLOPS %lf max_diff %lf\n",
-	  time_ell_gpu,mflops_ell_gpu, max_diff_ell_gpu);
+  fprintf(stdout," [GPU ELL] Grid dim = %d %d , Block dim = %d %d time %lf  MFLOPS %lf max_diff %lf\n",
+	  GRID_DIM_ELL.x, GRID_DIM_ELL.y, BLOCK_DIM.x, BLOCK_DIM.y, time_ell_gpu,mflops_ell_gpu, max_diff_ell_gpu);
 
 
   // ------------------------------- save result into CSV file ------------------------------ //
