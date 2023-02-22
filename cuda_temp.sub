@@ -61,6 +61,9 @@ gpus=`echo $CUDA_VISIBLE_DEVICES|awk -F"," '{print NF}'`
 ## Put correct parameters in mpirun execution line
 ## below:
 ##
+
+######## CUDA ############
+
 #./main_cuda_1thread matrices/cant.mtx
 #./main_cuda_block_1d matrices/cant.mtx
 ./main_cuda_block_2d matrices/cant.mtx
@@ -87,6 +90,21 @@ do
     for YBD in 8 16 32 64 128 256 512
     do
         ./main_cuda_block_2d matrices/cant.mtx $XBD $YBD
+    done
+done
+
+######## OpenMP ############
+
+for exe in matrix_vector_serial  #matrix_vector_parallel
+do
+    echo "Runs with executable: $exe"
+    for size in 10 20 30 31 32 33 34 35 36  40 50 60 70 80 90 100 128 200 256 500 512 1000 1024 2048 4096 5000
+    do 
+	for t in 1 2  4 8 
+	do    
+	    export OMP_NUM_THREADS=$t
+	    ./$exe    $size $size
+	done
     done
 done
 

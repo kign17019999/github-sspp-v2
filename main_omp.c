@@ -108,7 +108,7 @@ int main(int argc, char** argv)
   double mflops_ell_serial = (2.0e-6)*matrix_ellpack.NNZ/time_ell_serial;
   double max_diff_ell_serial = check_result(matrix_csr.M, y0, y);
 
-  fprintf(stdout,"[ELL 1Td] with 1 thread: time %lf  MFLOPS %lf max_diff %lf\n",
+  fprintf(stdout," [ELL 1Td] with 1 thread: time %lf  MFLOPS %lf max_diff %lf\n",
 	  time_ell_serial,mflops_ell_serial, max_diff_ell_serial);
 
   // ------------------------ Parallel Calculations with OpenMP ------------------------- //
@@ -285,7 +285,7 @@ void save_result_omp(char *program_name, char* matrix_file, int M, int N,
   }
 
   // write new row to file
-  fprintf(fp, "%s,%s,%d,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\n",
+  fprintf(fp, "%s,%s,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
           program_name, matrix_file, M, N,
           nthreads, chunk_size, time_csr_serial, mflops_csr_serial, max_diff_csr_serial,
           time_ell_serial, mflops_ell_serial, max_diff_ell_serial,

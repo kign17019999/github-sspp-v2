@@ -1,0 +1,62 @@
+#!/bin/bash
+##
+## MPI submission script for PBS 
+## ----------------------------------
+##
+## Follow the 5 steps below to configure. If you edit this from Windows,
+## *before* submitting via "qsub" run "dos2unix" on this file - or you will
+## get strange errors. You have been warned.
+## 
+## STEP 1:
+##
+## Enter a job name after the -N on the line below:
+##
+#PBS -N openMP 
+##
+## STEP 2:
+##
+## The select line below selects 1 chunk of 4 cpus 
+## Make sure to match ncpus to the number of threads 
+##
+#PBS -l select=1:ncpus=8:mpiprocs=1
+##
+## STEP 3:
+##
+## Select correct queue:
+##    reserved   special queue for this course
+##
+#PBS -q gpu
+##
+## STEP 4:
+##
+## Replace the purin.tanirat.240@cranfield.ac.uk email address
+## with your email address after the -M on the line below:
+## Your email address is NOT your username
+##
+#PBS -m abe 
+#PBS -M john.doe@cranfield.ac.uk
+##
+##
+##
+## DO NOT CHANGE the following lines
+##------------------------------------------------
+#PBS -j oe
+#PBS -W sandbox=PRIVATE
+#PBS -k n
+ln -s $PWD $PBS_O_WORKDIR/$PBS_JOBID
+##
+## Change to working directory
+cd $PBS_O_WORKDIR
+##
+## Calculate number of CPUs
+export cpus=`cat $PBS_NODEFILE | wc -l`
+##
+##
+##-------------------------------------------------
+##
+## STEP 5: 
+## Run the application
+
+./omp matrices/cant.mtx 16 128
+
+/bin/rm -f ./$PBS_JOBID
