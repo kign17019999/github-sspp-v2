@@ -11,12 +11,8 @@ int YBD=8;  // 2d block dimension
 
 void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* y);
-void printCSR(int M, int N, int NNZ, const int* IRP, const int* JA,
- const double* AZ);
 void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ, const double* x, double* y);
-void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
- const double* AZ);
 double check_result(int M, double* y0, double* y);
 void save_result_cuda(char *program_name, char* matrix_file, int M, int N,
                  int cudaXBD, int cudaYBD, int cudaXGD, int cudaYGD,
@@ -25,9 +21,9 @@ void save_result_cuda(char *program_name, char* matrix_file, int M, int N,
                  double time_csr_gpu, double mflops_csr_gpu, double max_diff_csr_gpu,
                  double time_ell_gpu, double mflops_ell_gpu, double max_diff_ell_gpu);
 
-__global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
+__global__ void gpuMatrixVectorCSR(int XBD, int YBD, int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* y);
-__global__ void gpuMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int* JA,
+__global__ void gpuMatrixVectorELL(int XBD, int YBD, int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ, const double* x, double* y);
 
 int main(int argc, char** argv) 
@@ -143,7 +139,7 @@ int main(int argc, char** argv)
 
   timer->reset();
   timer->start();
-  gpuMatrixVectorCSR<<<GRID_DIM_CSR, BLOCK_DIM>>>(matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
+  gpuMatrixVectorCSR<<<GRID_DIM_CSR, BLOCK_DIM>>>(XBD, YBD, matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
   checkCudaErrors(cudaDeviceSynchronize());
   timer->stop();
 
@@ -164,7 +160,7 @@ int main(int argc, char** argv)
 
   timer->reset();
   timer->start();
-  gpuMatrixVectorELL<<<GRID_DIM_ELL, BLOCK_DIM>>>(matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
+  gpuMatrixVectorELL<<<GRID_DIM_ELL, BLOCK_DIM>>>(XBD, YBD, matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
   checkCudaErrors(cudaDeviceSynchronize());
   timer->stop();
 
@@ -255,7 +251,7 @@ double check_result(int M, double* y0, double* y)
   return max_diff;
 }
 
-__global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA, const double* AZ, const double* x, double* y)
+__global__ void gpuMatrixVectorCSR(int XBD, int YBD, int M, int N, const int* IRP, const int* JA, const double* AZ, const double* x, double* y)
 {
   int row = blockIdx.x*blockDim.y + threadIdx.y;
   int tid_c = threadIdx.x;
@@ -293,7 +289,7 @@ __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA, 
   }
 }
 
-__global__ void gpuMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int* JA, const double* AZ, const double* x, double* y)
+__global__ void gpuMatrixVectorELL(int XBD, int YBD, int M, int N, int NNZ, int MAXNZ, const int* JA, const double* AZ, const double* x, double* y)
 {
   int row = blockIdx.x*blockDim.y + threadIdx.y;
   int tid_c = threadIdx.x;
