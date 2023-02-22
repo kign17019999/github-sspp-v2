@@ -138,7 +138,7 @@ int main(int argc, char** argv)
 
   timer->reset();
   timer->start();
-  gpuMatrixVectorCSR<<<GRID_DIM_CSR, BLOCK_DIM>>>(XBD, YBD, matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
+  gpuMatrixVectorCSR<<<GRID_DIM_CSR, BLOCK_DIM, XBD*YBD*sizeof(double)>>>(XBD, YBD, matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
   checkCudaErrors(cudaDeviceSynchronize());
   timer->stop();
 
@@ -159,7 +159,7 @@ int main(int argc, char** argv)
 
   timer->reset();
   timer->start();
-  gpuMatrixVectorELL<<<GRID_DIM_ELL, BLOCK_DIM>>>(XBD, YBD, matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
+  gpuMatrixVectorELL<<<GRID_DIM_ELL, BLOCK_DIM, XBD*YBD*sizeof(double)>>>(XBD, YBD, matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
   checkCudaErrors(cudaDeviceSynchronize());
   timer->stop();
 
@@ -257,14 +257,14 @@ __global__ void gpuMatrixVectorCSR(const int XBD, const int YBD, int M, int N, c
   int tid_r = threadIdx.y;
   int num_threads_per_row = blockDim.x;
 
-  __shared__ double sdata[YBD][XBD]; // Allocate shared memory for vector x
+  extern __shared__ double sdata[];
 
   if (row < M) {
     double t = 0.0;
     for (int col = IRP[row] + tid_c; col < IRP[row+1]; col += blockDim.x) {
       t += AZ[col] * x[JA[col]];
     }
-    sdata[tid_r][tid_c] = t;
+    sdata[tid_r*XBD+tid_c] = t;
     __syncthreads();
     
     // Perform row-reduction operation to sum the elements in sdata and store the result in y[row].
@@ -272,9 +272,9 @@ __global__ void gpuMatrixVectorCSR(const int XBD, const int YBD, int M, int N, c
     for (int stride = num_threads_per_row/2; stride > 0; stride >>= 1) {
       if (tid_c < stride) {
         if(tid_c == stride -1 && prev_stride%2==1){
-          sdata[tid_r][tid_c] += sdata[tid_r][tid_c + stride] + sdata[tid_r][tid_c + stride +1];
+          sdata[tid_r*XBD+tid_c] += sdata[tid_r*XBD+tid_c + stride] + sdata[tid_r*XBD+tid_c + stride +1];
         }else{
-          sdata[tid_r][tid_c] += sdata[tid_r][tid_c + stride];
+          sdata[tid_r*XBD+tid_c] += sdata[tid_r*XBD+tid_c + stride];
         }
       }
       __syncthreads();
@@ -283,7 +283,7 @@ __global__ void gpuMatrixVectorCSR(const int XBD, const int YBD, int M, int N, c
 
     // Thread 0 writes the final result to global memory
     if (tid_c == 0) {
-      y[row] = sdata[tid_r][tid_c];
+      y[row] = sdata[tid_r*XBD+tid_c];
     }
   }
 }
@@ -295,7 +295,7 @@ __global__ void gpuMatrixVectorELL(const int XBD, const int YBD, int M, int N, i
   int tid_r = threadIdx.y;
   int num_threads_per_row = blockDim.x;
 
-  __shared__ double sdata[YBD][XBD]; // Allocate shared memory for vector x
+  extern __shared__ double sdata[];
 
   if (row < M) {
     double t = 0.0;
@@ -306,7 +306,7 @@ __global__ void gpuMatrixVectorELL(const int XBD, const int YBD, int M, int N, i
       }
       t += AZ[ja_idx] * x[JA[ja_idx]];
     }
-    sdata[tid_r][tid_c] = t;
+    sdata[tid_r*XBD+tid_c] = t;
     __syncthreads();
 
     // Perform row-reduction operation to sum the elements in sdata and store the result in y[row].
@@ -314,9 +314,9 @@ __global__ void gpuMatrixVectorELL(const int XBD, const int YBD, int M, int N, i
     for (int stride = num_threads_per_row/2; stride > 0; stride >>= 1) {
       if (tid_c < stride) {
         if(tid_c == stride -1 && prev_stride%2==1){
-          sdata[tid_r][tid_c] += sdata[tid_r][tid_c + stride] + sdata[tid_r][tid_c + stride +1];
+          sdata[tid_r*XBD+tid_c] += sdata[tid_r*XBD+tid_c + stride] + sdata[tid_r*XBD+tid_c + stride +1];
         }else{
-          sdata[tid_r][tid_c] += sdata[tid_r][tid_c + stride];
+          sdata[tid_r*XBD+tid_c] += sdata[tid_r*XBD+tid_c + stride];
         }
       }
       __syncthreads();
@@ -325,7 +325,7 @@ __global__ void gpuMatrixVectorELL(const int XBD, const int YBD, int M, int N, i
 
     // Thread 0 writes the final result to global memory
     if (tid_c == 0) {
-      y[row] = sdata[tid_r][tid_c];
+      y[row] = sdata[tid_r*XBD+tid_c];
     }
   }
 }
@@ -354,7 +354,7 @@ void save_result_cuda(char *program_name, char* matrix_file, int M, int N,
   }
 
   // write new row to file
-  fprintf(fp, "%s,%s,%d,%d,%d,%d,%d,%d,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\n",
+  fprintf(fp, "%s,%s,%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
           program_name, matrix_file, M, N,
           cudaXBD, cudaYBD, cudaXGD, cudaYGD, time_csr_serial, mflops_csr_serial, max_diff_csr_serial,
           time_ell_serial, mflops_ell_serial, max_diff_ell_serial,
