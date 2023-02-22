@@ -11,7 +11,7 @@
 ##
 ## Enter a job name after the -N on the line below:
 ##
-#PBS -N openMP 
+#PBS -N SSPP_OMP
 ##
 ## STEP 2:
 ##
@@ -29,12 +29,12 @@
 ##
 ## STEP 4:
 ##
-## Replace the purin.tanirat.240@cranfield.ac.uk email address
+## Replace the hpc@cranfield.ac.uk email address
 ## with your email address after the -M on the line below:
 ## Your email address is NOT your username
 ##
 #PBS -m abe 
-#PBS -M john.doe@cranfield.ac.uk
+#PBS -M purin.tanirat.240@cranfield.ac.uk
 ##
 ##
 ##

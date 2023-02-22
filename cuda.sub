@@ -10,7 +10,7 @@
 ## STEP 1:
 ## The following line contains the job name:
 ##
-#PBS -N cudatest
+#PBS -N SSPP_CUDA
 ##
 ## STEP 2:
 ##
