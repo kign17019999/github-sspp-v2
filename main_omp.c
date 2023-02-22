@@ -241,7 +241,7 @@ void ompMatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
 }
 
 // OpenMP implementation of matrix_vector product in ELLPACK format
-void ompMatrixVectorELLomp(int M, int N, int NNZ, int MAXNZ, const int* JA,
+void ompMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ, const double* x, double* restrict y) 
 {
 #pragma omp parallel shared(M, N, NNZ, MAXNZ, JA, AZ, x, y, chunk_size)
