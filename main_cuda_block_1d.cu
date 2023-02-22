@@ -23,7 +23,7 @@ void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ, const double* x, double* y);
 void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ);
-int check_result(int M, double* y0, double* y);
+double check_result(int M, double* y0, double* y);
 
 __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* y);
@@ -90,7 +90,6 @@ int main(int argc, char** argv)
   /* END CSR Serial */
 
   /* ELLPACK Serial */
-/*
   timer->reset();
   timer->start();
   MatrixVectorELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ,
@@ -101,7 +100,6 @@ int main(int argc, char** argv)
   double max_diff_ell_serial = check_result(matrix_csr.M, y0, y);
   fprintf(stdout,"[ELL] with 1 thread: time %lf  MFLOPS %lf max_diff %lf\n",
 	  tmlt_ell_serial,mflops_ell_serial, max_diff_ell_serial);
-*/
   /* END ELLPACK Serial */
 
   /* =============== vvvvv =================== */
@@ -139,34 +137,39 @@ int main(int argc, char** argv)
 
   /* ============== xxxxxxxxxxxxxxxxx ==================== */
 
-  const dim3 GRID_DIM_CSR((matrix_csr.M - 1 + BLOCK_DIM.x)/ BLOCK_DIM.x, 1);
+  const dim3 GRID_DIM_CSR(matrix_csr.M, 1);
   printf("grid dim = %d , block dim = %d \n",GRID_DIM_CSR.x,BLOCK_DIM.x);
 
+  timer->reset();
   timer->start();
-  gpuMatrixVectorCSR<<<GRID_DIM_CSR, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
+  //gpuMatrixVectorCSR<<<GRID_DIM, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
+  gpuMatrixVectorCSR<<<GRID_DIM_CSR, BLOCK_DIM>>>(matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
   checkCudaErrors(cudaDeviceSynchronize());
   timer->stop();
-  checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.N*sizeof(double),cudaMemcpyDeviceToHost));
+  
+  checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.M*sizeof(double),cudaMemcpyDeviceToHost));
   double mflops_csr_cuda = (2.0e-6)*matrix_csr.NNZ/(timer->getTime()/1000);
   double max_diff_csr_cuda = check_result(matrix_csr.M, y0, y);
   fprintf(stdout,"[CSR cuda] with X thread: time %lf  MFLOPS %lf max_diff %lf\n",
-	  timer->getTime(),mflops_csr_cuda, max_diff_csr_cuda);
+	  timer->getTime()/1000,mflops_csr_cuda, max_diff_csr_cuda);
 
   /* ============== xxxxxxxxxxxxxxxxx ==================== */
 
-  const dim3 GRID_DIM_ELL((matrix_csr.M - 1 + BLOCK_DIM.x)/ BLOCK_DIM.x, 1);
+  //const dim3 GRID_DIM_ELL((matrix_csr.M - 1 + BLOCK_DIM.x) / BLOCK_DIM.x, 1);
+  const dim3 GRID_DIM_ELL(matrix_csr.M, 1);
   printf("grid dim = %d , block dim = %d \n",GRID_DIM_ELL.x,BLOCK_DIM.x);
-  
+
   timer->reset();
   timer->start();
-  gpuMatrixVectorELL<<<GRID_DIM_ELL, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
+  //gpuMatrixVectorELL<<<GRID_DIM, BLOCK_DIM >>>(matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
+  gpuMatrixVectorELL<<<GRID_DIM_ELL, BLOCK_DIM>>>(matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
   checkCudaErrors(cudaDeviceSynchronize());
   timer->stop();
-  checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.N*sizeof(double),cudaMemcpyDeviceToHost));
+  checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.M*sizeof(double),cudaMemcpyDeviceToHost));
   double mflops_ell_cuda = (2.0e-6)*matrix_csr.NNZ/(timer->getTime()/1000);
   double max_diff_ell_cuda = check_result(matrix_csr.M, y0, y);
   fprintf(stdout,"[ELL cuda] with X thread: time %lf  MFLOPS %lf max_diff %lf\n",
-	  timer->getTime(),mflops_ell_cuda, max_diff_ell_cuda);
+	  timer->getTime()/1000,mflops_ell_cuda, max_diff_ell_cuda);
 
   /* ============== ^^^^^^ ==================== */
 
@@ -285,7 +288,7 @@ void printELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
   }
 }
 
-int check_result(int M, double* y0, double* y)
+double check_result(int M, double* y0, double* y)
 {
   double max_diff = 0;
   double cal_diff = 0;
@@ -296,34 +299,80 @@ int check_result(int M, double* y0, double* y)
   return max_diff;
 }
 
-__global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
- const double* AZ, const double* x, double* y)
+__global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA, const double* AZ, const double* x, double* y)
 {
-  int tr = threadIdx.x;
-  int row = blockIdx.x*blockDim.x + tr;
+  int row = blockIdx.x;
+  int tid = threadIdx.x;
+  int num_threads = blockDim.x;
+
+  __shared__ double sdata[BD]; // Allocate shared memory for vector x
+
   if (row < M) {
-    double t = 0;
-    for (int col = IRP[row]; col < IRP[row+1]; col++) {
+    double t = 0.0;
+    for (int col = IRP[row] + tid; col < IRP[row+1]; col += blockDim.x) {
       t += AZ[col] * x[JA[col]];
     }
-    y[row] = t;
+    sdata[tid] = t;
+    __syncthreads();
+    
+    // Perform row-reduction operation to sum t across all threads in the block
+    int prev_stride = num_threads/2;
+    for (int stride = num_threads/2; stride > 0; stride >>= 1) {
+      if (tid < stride) {
+        if(tid == stride -1 && prev_stride%2==1){
+          sdata[tid] += sdata[tid + stride] + sdata[tid + stride +1];
+        }else{
+          sdata[tid] += sdata[tid + stride];
+        }
+      }
+      __syncthreads();
+      prev_stride=stride;
+    }
+
+    // Thread 0 writes the final result to global memory
+    if (tid == 0) {
+      y[row] = sdata[tid];
+    }
   }
 }
 
-__global__ void gpuMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int* JA,
- const double* AZ, const double* x, double* y)
+__global__ void gpuMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int* JA, const double* AZ, const double* x, double* y)
 {
-  int tr = threadIdx.x;
-  int row = blockIdx.x*blockDim.x + tr;
+  int row = blockIdx.x;
+  int tid = threadIdx.x;
+  int num_threads = blockDim.x;
+
+  __shared__ double sdata[BD]; // Allocate shared memory for vector x
+
   if (row < M) {
     double t = 0;
-    for (int col = 0; col < MAXNZ; col++) {
+    for (int col = tid; col < MAXNZ; col += num_threads) {
       int ja_idx = row * MAXNZ + col;
       if (col >= NNZ || JA[ja_idx] < 0) {
         break;
       }
       t += AZ[ja_idx] * x[JA[ja_idx]];
     }
-    y[row] = t;
+    sdata[tid] = t;
+    __syncthreads();
+
+    // Perform row-reduction operation to sum t across all threads in the block
+    int prev_stride = num_threads/2;
+    for (int stride = num_threads/2; stride > 0; stride >>= 1) {
+      if (tid < stride) {
+        if(tid == stride -1 && prev_stride%2==1){
+          sdata[tid] += sdata[tid + stride] + sdata[tid + stride +1];
+        }else{
+          sdata[tid] += sdata[tid + stride];
+        }
+      }
+      __syncthreads();
+      prev_stride=stride;
+    }
+
+    // Thread 0 writes the final result to global memory
+    if (tid == 0) {
+      y[row] = sdata[tid];
+    }
   }
 }

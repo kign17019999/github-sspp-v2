@@ -4,9 +4,11 @@
 
 //Simple dimension: define a 1D block structure
 #define BD 256
+//const dim3 BLOCK_DIM(BD);
 
-const dim3 BLOCK_DIM(BD);
-
+#define XBD 128
+#define YBD 8
+const dim3 BLOCK_DIM(XBD,YBD);
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -90,7 +92,6 @@ int main(int argc, char** argv)
   /* END CSR Serial */
 
   /* ELLPACK Serial */
-/*  
   timer->reset();
   timer->start();
   MatrixVectorELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ,
@@ -101,7 +102,6 @@ int main(int argc, char** argv)
   double max_diff_ell_serial = check_result(matrix_csr.M, y0, y);
   fprintf(stdout,"[ELL] with 1 thread: time %lf  MFLOPS %lf max_diff %lf\n",
 	  tmlt_ell_serial,mflops_ell_serial, max_diff_ell_serial);
-*/
   /* END ELLPACK Serial */
 
   /* =============== vvvvv =================== */
@@ -139,7 +139,7 @@ int main(int argc, char** argv)
 
   /* ============== xxxxxxxxxxxxxxxxx ==================== */
 
-  const dim3 GRID_DIM_CSR(matrix_csr.M, 1);
+  const dim3 GRID_DIM_CSR((matrix_csr.M-1+BLOCK_DIM.y)/BLOCK_DIM.y, 1);
   printf("grid dim = %d , block dim = %d \n",GRID_DIM_CSR.x,BLOCK_DIM.x);
 
   timer->reset();
@@ -157,8 +157,10 @@ int main(int argc, char** argv)
 
   /* ============== xxxxxxxxxxxxxxxxx ==================== */
 
-  //const dim3 GRID_DIM_ELL((matrix_csr.M - 1 + BLOCK_DIM.x) / BLOCK_DIM.x, 1);
-  const dim3 GRID_DIM_ELL(matrix_csr.M, 1);
+  // int number_grid_for_1d_block = (matrix_csr.M - 1 + BLOCK_DIM.x) / BLOCK_DIM.x;
+  // int number_grid_for_2d_block = (number_grid_for_1d_block-1+BLOCK_DIM.y)/BLOCK_DIM.y;
+  // const dim3 GRID_DIM_ELL(number_grid_for_2d_block, 1);
+  const dim3 GRID_DIM_ELL((matrix_csr.M-1+BLOCK_DIM.y)/BLOCK_DIM.y, 1);
   printf("grid dim = %d , block dim = %d \n",GRID_DIM_ELL.x,BLOCK_DIM.x);
 
   timer->reset();
@@ -303,28 +305,29 @@ double check_result(int M, double* y0, double* y)
 
 __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA, const double* AZ, const double* x, double* y)
 {
-  int row = blockIdx.x;
-  int tid = threadIdx.x;
-  int num_threads = blockDim.x;
+  int row = blockIdx.x*blockDim.y + threadIdx.y;
+  int tid_c = threadIdx.x;
+  int tid_r = threadIdx.y;
+  int num_threads_per_row = blockDim.x;
 
-  __shared__ double sdata[BD]; // Allocate shared memory for vector x
+  __shared__ double sdata[YBD][XBD]; // Allocate shared memory for vector x
 
   if (row < M) {
     double t = 0.0;
-    for (int col = IRP[row] + tid; col < IRP[row+1]; col += blockDim.x) {
+    for (int col = IRP[row] + tid_c; col < IRP[row+1]; col += blockDim.x) {
       t += AZ[col] * x[JA[col]];
     }
-    sdata[tid] = t;
+    sdata[tid_r][tid_c] = t;
     __syncthreads();
     
     // Perform row-reduction operation to sum t across all threads in the block
-    int prev_stride = num_threads/2;
-    for (int stride = num_threads/2; stride > 0; stride >>= 1) {
-      if (tid < stride) {
-        if(tid == stride -1 && prev_stride%2==1){
-          sdata[tid] += sdata[tid + stride] + sdata[tid + stride +1];
+    int prev_stride = num_threads_per_row/2;
+    for (int stride = num_threads_per_row/2; stride > 0; stride >>= 1) {
+      if (tid_c < stride) {
+        if(tid_c == stride -1 && prev_stride%2==1){
+          sdata[tid_r][tid_c] += sdata[tid_r][tid_c + stride] + sdata[tid_r][tid_c + stride +1];
         }else{
-          sdata[tid] += sdata[tid + stride];
+          sdata[tid_r][tid_c] += sdata[tid_r][tid_c + stride];
         }
       }
       __syncthreads();
@@ -332,40 +335,41 @@ __global__ void gpuMatrixVectorCSR(int M, int N, const int* IRP, const int* JA, 
     }
 
     // Thread 0 writes the final result to global memory
-    if (tid == 0) {
-      y[row] = sdata[tid];
+    if (tid_c == 0) {
+      y[row] = sdata[tid_r][tid_c];
     }
   }
 }
 
 __global__ void gpuMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int* JA, const double* AZ, const double* x, double* y)
 {
-  int row = blockIdx.x;
-  int tid = threadIdx.x;
-  int num_threads = blockDim.x;
+  int row = blockIdx.x*blockDim.y + threadIdx.y;
+  int tid_c = threadIdx.x;
+  int tid_r = threadIdx.y;
+  int num_threads_per_row = blockDim.x;
 
-  __shared__ double sdata[BD]; // Allocate shared memory for vector x
+  __shared__ double sdata[YBD][XBD]; // Allocate shared memory for vector x
 
   if (row < M) {
-    double t = 0;
-    for (int col = tid; col < MAXNZ; col += num_threads) {
+    double t = 0.0;
+    for (int col = tid_c; col < MAXNZ; col += num_threads_per_row) {
       int ja_idx = row * MAXNZ + col;
       if (col >= NNZ || JA[ja_idx] < 0) {
         break;
       }
       t += AZ[ja_idx] * x[JA[ja_idx]];
     }
-    sdata[tid] = t;
+    sdata[tid_r][tid_c] = t;
     __syncthreads();
 
     // Perform row-reduction operation to sum t across all threads in the block
-    int prev_stride = num_threads/2;
-    for (int stride = num_threads/2; stride > 0; stride >>= 1) {
-      if (tid < stride) {
-        if(tid == stride -1 && prev_stride%2==1){
-          sdata[tid] += sdata[tid + stride] + sdata[tid + stride +1];
+    int prev_stride = num_threads_per_row/2;
+    for (int stride = num_threads_per_row/2; stride > 0; stride >>= 1) {
+      if (tid_c < stride) {
+        if(tid_c == stride -1 && prev_stride%2==1){
+          sdata[tid_r][tid_c] += sdata[tid_r][tid_c + stride] + sdata[tid_r][tid_c + stride +1];
         }else{
-          sdata[tid] += sdata[tid + stride];
+          sdata[tid_r][tid_c] += sdata[tid_r][tid_c + stride];
         }
       }
       __syncthreads();
@@ -373,8 +377,8 @@ __global__ void gpuMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int* 
     }
 
     // Thread 0 writes the final result to global memory
-    if (tid == 0) {
-      y[row] = sdata[tid];
+    if (tid_c == 0) {
+      y[row] = sdata[tid_r][tid_c];
     }
   }
 }

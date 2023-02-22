@@ -61,8 +61,12 @@ gpus=`echo $CUDA_VISIBLE_DEVICES|awk -F"," '{print NF}'`
 ## Put correct parameters in mpirun execution line
 ## below:
 ##
-./main_cuda_1thread matrices/cant.mtx
-./main_cuda_block_1d matrices/cant.mtx
-./main_cuda_block_2d matrices/cant.mtx
+#./matrix_vector_1thread 10000 10000
+#./main_cuda_v1 matrices/cage4.mtx
+./main_cuda_v3_1thread matrices/cant.mtx
+./main_cuda_v3_1d_block matrices/cant.mtx
+#./main_cuda_v3_1thread matrices/PR02R.mtx
+#./main_cuda_v3_1thread matrices/roadNet-PA.mtx
+./main_cuda_v3_2d_block matrices/cant.mtx
 
 /bin/rm -f $PBS_JOBID
