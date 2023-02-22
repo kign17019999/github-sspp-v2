@@ -14,8 +14,18 @@
 ##
 ## STEP 2:
 ##
+## Select the number of cpus/cores required by modifying the #PBS -l select line below
 ##
-#PBS -l select=1:ncpus=1:mpiprocs=1:ngpus=1
+## Normally you select cpus in chunks of 16 cpus
+## The Maximum value for ncpus is 16 and mpiprocs MUST be the same value as ncpus.
+##
+## If more than 16 cpus are required then select multiple chunks of 16
+## e.g.	16 CPUs: select=1:ncpus=16:mpiprocs=16
+##	32 CPUs: select=2:ncpus=16:mpiprocs=16
+##	48 CPUs: select=3:ncpus=16:mpiprocs=16
+##	..etc..
+##
+#PBS -l select=1:ncpus=16:mpiprocs=16
 ##
 ## STEP 3:
 ##
