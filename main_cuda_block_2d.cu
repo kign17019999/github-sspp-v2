@@ -6,6 +6,8 @@
 #include <helper_cuda.h>  // For checkCudaError macro
 #include <helper_timer.h>  // For CUDA SDK timers
 
+const int ntimes = 5;
+
 void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* y);
 void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
@@ -37,10 +39,12 @@ int main(int argc, char** argv)
     XBD = atoi(argv[2]);
     YBD = atoi(argv[3]);
   } else {
-    printf(" Usage: %s [XBD] [YBD] \n", argv[0]);
+    printf(" Usage: %s matrixFile.mtx [XBD] [YBD] \n", argv[0]);
     return -1;
   }
+  printf("---------------------------------------------------------------------\n");
   printf("Run from file: %s, reading matrix: %s, XBD: %d, YBD: %d\n", program_name, matrix_file, XBD, YBD);
+  
   // Create the CUDA SDK timer.
   StopWatchInterface* timer = 0;
   sdkCreateTimer(&timer);
@@ -103,12 +107,13 @@ int main(int argc, char** argv)
   // ---- perform serial code in CSR format ---- //
   timer->reset();
   timer->start();
-  MatrixVectorCSR(matrix_csr.M, matrix_csr.N, matrix_csr.IRP, matrix_csr.JA,
-   matrix_csr.AZ, x, y0);
+  for(int tryloop=0; tryloop<ntimes; tryloop++){
+    MatrixVectorCSR(matrix_csr.M, matrix_csr.N, matrix_csr.IRP, matrix_csr.JA, matrix_csr.AZ, x, y0);
+  }
   timer->stop();
 
-  double time_csr_serial = timer->getTime()/1000;
-  double mflops_csr_serial = (2.0e-6)*matrix_csr.NNZ/time_csr_serial;
+  double time_csr_serial = timer->getTime()/1000/ntimes; // timing
+  double mflops_csr_serial = (2.0e-6)*matrix_csr.NNZ/time_csr_serial; // mflops
 
   fprintf(stdout," [CPU CSR] with 1 thread: time %lf  MFLOPS %lf \n",
 	  time_csr_serial,mflops_csr_serial);
@@ -116,12 +121,14 @@ int main(int argc, char** argv)
   // ---- perform serial code in ELLPACK format ---- //
   timer->reset();
   timer->start();
-  MatrixVectorELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ,
-   matrix_ellpack.MAXNZ, matrix_ellpack.JA, matrix_ellpack.AZ, x, y);
+  for(int tryloop=0; tryloop<ntimes; tryloop++){
+    MatrixVectorELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ,
+     matrix_ellpack.MAXNZ, matrix_ellpack.JA, matrix_ellpack.AZ, x, y);
+  }
   timer->stop();
 
-  double time_ell_serial = timer->getTime()/1000;
-  double mflops_ell_serial = (2.0e-6)*matrix_ellpack.NNZ/time_ell_serial;
+  double time_ell_serial = timer->getTime()/1000/ntimes;  // timing
+  double mflops_ell_serial = (2.0e-6)*matrix_ellpack.NNZ/time_ell_serial; // mflops
   double max_diff_ell_serial = check_result(matrix_csr.M, y0, y);  // calculate a difference of result
 
   fprintf(stdout," [CPU ELL] with 1 thread: time %lf  MFLOPS %lf max_diff %lf\n",
@@ -129,7 +136,7 @@ int main(int argc, char** argv)
 
   // ------------------------ Calculations on the GPU ------------------------- //
 
-  // define a 1D block structure
+  // define a 2D block structure
   const dim3 BLOCK_DIM(XBD,YBD);
 
   // ---- perform parallel code in CSR format ---- //
@@ -138,15 +145,17 @@ int main(int argc, char** argv)
 
   timer->reset();
   timer->start();
-  gpuMatrixVectorCSR<<<GRID_DIM_CSR, BLOCK_DIM, XBD*YBD*sizeof(double)>>>(XBD, YBD, matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
-  checkCudaErrors(cudaDeviceSynchronize());
+  for(int tryloop=0; tryloop<ntimes; tryloop++){
+    gpuMatrixVectorCSR<<<GRID_DIM_CSR, BLOCK_DIM, XBD*YBD*sizeof(double)>>>(BLOCK_DIM.x, BLOCK_DIM.y, matrix_csr.M, matrix_csr.N, d_csr_IRP, d_csr_JA, d_csr_AZ, d_x, d_y);
+    checkCudaErrors(cudaDeviceSynchronize());
+  }
   timer->stop();
 
   // Download the resulting vector d_y from the device and store it in y.
   checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.M*sizeof(double),cudaMemcpyDeviceToHost));
   
-  double time_csr_gpu = timer->getTime()/1000;
-  double mflops_csr_gpu = (2.0e-6)*matrix_csr.NNZ/time_csr_gpu;
+  double time_csr_gpu = timer->getTime()/1000/ntimes; // timing
+  double mflops_csr_gpu = (2.0e-6)*matrix_csr.NNZ/time_csr_gpu; // mflops
   double max_diff_csr_gpu = check_result(matrix_csr.M, y0, y);  // calculate a difference of result
 
   fprintf(stdout," [GPU CSR] Grid dim = %d %d , Block dim = %d %d time %lf  MFLOPS %lf max_diff %lf\n",
@@ -158,15 +167,17 @@ int main(int argc, char** argv)
 
   timer->reset();
   timer->start();
-  gpuMatrixVectorELL<<<GRID_DIM_ELL, BLOCK_DIM, XBD*YBD*sizeof(double)>>>(XBD, YBD, matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
-  checkCudaErrors(cudaDeviceSynchronize());
+  for(int tryloop=0; tryloop<ntimes; tryloop++){
+    gpuMatrixVectorELL<<<GRID_DIM_ELL, BLOCK_DIM, XBD*YBD*sizeof(double)>>>(BLOCK_DIM.x, BLOCK_DIM.y, matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, d_ell_JA, d_ell_AZ, d_x, d_y);
+    checkCudaErrors(cudaDeviceSynchronize());
+  }
   timer->stop();
 
   // Download the resulting vector d_y from the device and store it in y.
   checkCudaErrors(cudaMemcpy(y, d_y, matrix_csr.M*sizeof(double),cudaMemcpyDeviceToHost));
 
-  double time_ell_gpu = timer->getTime()/1000;
-  double mflops_ell_gpu = (2.0e-6)*matrix_csr.NNZ/time_ell_gpu;
+  double time_ell_gpu = timer->getTime()/1000/ntimes; // timing
+  double mflops_ell_gpu = (2.0e-6)*matrix_csr.NNZ/time_ell_gpu; // mflops
   double max_diff_ell_gpu = check_result(matrix_csr.M, y0, y);  // calculate a difference of result
 
   fprintf(stdout," [GPU ELL] Grid dim = %d %d , Block dim = %d %d time %lf  MFLOPS %lf max_diff %lf\n",
@@ -176,7 +187,7 @@ int main(int argc, char** argv)
   // ------------------------------- save result into CSV file ------------------------------ //
   
   save_result_cuda(program_name, matrix_file, matrix_csr.M, matrix_csr.N,
-                 XBD, YBD, GRID_DIM_CSR.x, GRID_DIM_CSR.y,
+                 GRID_DIM_ELL.x, GRID_DIM_ELL.y, GRID_DIM_CSR.x, GRID_DIM_CSR.y,
                  time_csr_serial, mflops_csr_serial, 0,
                  time_ell_serial, mflops_ell_serial, max_diff_ell_serial,
                  time_csr_gpu, mflops_csr_gpu, max_diff_csr_gpu,
@@ -206,6 +217,7 @@ int main(int argc, char** argv)
   return 0;
 }
 
+// Simple CPU implementation of matrix_vector product multiplication in CSR format.
 void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* y) 
 {
@@ -220,24 +232,24 @@ void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
   }
 }
 
+// Simple CPU implementation of matrix_vector product in ELLPACK format.
 void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ, const double* x, double* y) 
 {
   int row, col;
   double t;
+  int ja_idx;
   for (row = 0; row < M; row++) {
     t = 0;
     for (col = 0; col < MAXNZ; col++) {
-      int ja_idx = row * MAXNZ + col;
-      if (col >= NNZ || JA[ja_idx] < 0) {
-        break;
-      }
+      ja_idx = row * MAXNZ + col;
       t += AZ[ja_idx] * x[JA[ja_idx]];
     }
     y[row] = t;
   }
 }
 
+// function to calcucate maximun different of result's element and return the maximun one 
 double check_result(int M, double* y0, double* y)
 {
   double max_diff = 0;
@@ -249,6 +261,7 @@ double check_result(int M, double* y0, double* y)
   return max_diff;
 }
 
+// GPU implementation of matrix_vector product in CSR format
 __global__ void gpuMatrixVectorCSR(const int XBD, const int YBD, int M, int N, const int* IRP, const int* JA, const double* AZ, const double* x, double* y)
 {
   int row = blockIdx.x*blockDim.y + threadIdx.y;
@@ -256,14 +269,17 @@ __global__ void gpuMatrixVectorCSR(const int XBD, const int YBD, int M, int N, c
   int tid_r = threadIdx.y;
   int num_threads_per_row = blockDim.x;
 
-  extern __shared__ double sdata[];
+  // 1D shared memory is being used because the dimension of the shared memory needs to be specified at runtime.
+  extern __shared__ double sdata[]; 
 
   if (row < M) {
     double t = 0.0;
     for (int col = IRP[row] + tid_c; col < IRP[row+1]; col += blockDim.x) {
       t += AZ[col] * x[JA[col]];
     }
-    sdata[tid_r*XBD+tid_c] = t;
+    // Starting address of indexing 1d shared mamory for 2d data
+    int sindex = tid_r*XBD+tid_c;
+    sdata[sindex] = t;
     __syncthreads();
     
     // Perform row-reduction operation to sum the elements in sdata and store the result in y[row].
@@ -271,9 +287,9 @@ __global__ void gpuMatrixVectorCSR(const int XBD, const int YBD, int M, int N, c
     for (int stride = num_threads_per_row/2; stride > 0; stride >>= 1) {
       if (tid_c < stride) {
         if(tid_c == stride -1 && prev_stride%2==1){
-          sdata[tid_r*XBD+tid_c] += sdata[tid_r*XBD+tid_c + stride] + sdata[tid_r*XBD+tid_c + stride +1];
+          sdata[sindex] += sdata[sindex + stride] + sdata[sindex + stride +1];
         }else{
-          sdata[tid_r*XBD+tid_c] += sdata[tid_r*XBD+tid_c + stride];
+          sdata[sindex] += sdata[sindex + stride];
         }
       }
       __syncthreads();
@@ -282,11 +298,12 @@ __global__ void gpuMatrixVectorCSR(const int XBD, const int YBD, int M, int N, c
 
     // Thread 0 writes the final result to global memory
     if (tid_c == 0) {
-      y[row] = sdata[tid_r*XBD+tid_c];
+      y[row] = sdata[sindex];
     }
   }
 }
 
+// GPU implementation of matrix_vector product in ELLPACK format
 __global__ void gpuMatrixVectorELL(const int XBD, const int YBD, int M, int N, int NNZ, int MAXNZ, const int* JA, const double* AZ, const double* x, double* y)
 {
   int row = blockIdx.x*blockDim.y + threadIdx.y;
@@ -294,18 +311,22 @@ __global__ void gpuMatrixVectorELL(const int XBD, const int YBD, int M, int N, i
   int tid_r = threadIdx.y;
   int num_threads_per_row = blockDim.x;
 
+  // 1D shared memory is being used because the dimension of the shared memory needs to be specified at runtime.
   extern __shared__ double sdata[];
 
   if (row < M) {
     double t = 0.0;
+    int ja_idx;
     for (int col = tid_c; col < MAXNZ; col += num_threads_per_row) {
-      int ja_idx = row * MAXNZ + col;
+      ja_idx = row * MAXNZ + col;
       if (col >= NNZ || JA[ja_idx] < 0) {
         break;
       }
       t += AZ[ja_idx] * x[JA[ja_idx]];
     }
-    sdata[tid_r*XBD+tid_c] = t;
+    // Starting address of indexing 1d shared mamory for 2d data
+    int sindex = tid_r*XBD+tid_c;
+    sdata[sindex] = t;
     __syncthreads();
 
     // Perform row-reduction operation to sum the elements in sdata and store the result in y[row].
@@ -313,9 +334,9 @@ __global__ void gpuMatrixVectorELL(const int XBD, const int YBD, int M, int N, i
     for (int stride = num_threads_per_row/2; stride > 0; stride >>= 1) {
       if (tid_c < stride) {
         if(tid_c == stride -1 && prev_stride%2==1){
-          sdata[tid_r*XBD+tid_c] += sdata[tid_r*XBD+tid_c + stride] + sdata[tid_r*XBD+tid_c + stride +1];
+          sdata[sindex] += sdata[sindex + stride] + sdata[sindex + stride +1];
         }else{
-          sdata[tid_r*XBD+tid_c] += sdata[tid_r*XBD+tid_c + stride];
+          sdata[sindex] += sdata[sindex + stride];
         }
       }
       __syncthreads();
@@ -324,11 +345,12 @@ __global__ void gpuMatrixVectorELL(const int XBD, const int YBD, int M, int N, i
 
     // Thread 0 writes the final result to global memory
     if (tid_c == 0) {
-      y[row] = sdata[tid_r*XBD+tid_c];
+      y[row] = sdata[sindex];
     }
   }
 }
 
+// function to save result into CSV file
 void save_result_cuda(char *program_name, char* matrix_file, int M, int N,
                  int cudaXBD, int cudaYBD, int cudaXGD, int cudaYGD,
                  double time_csr_serial, double mflops_csr_serial, double max_diff_csr_serial,
