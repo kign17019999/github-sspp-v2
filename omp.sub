@@ -11,7 +11,7 @@
 ##
 ## Enter a job name after the -N on the line below:
 ##
-#PBS -N SSPP_openMP 
+#PBS -N SSPP_OMP 
 ##
 ## STEP 2:
 ##
@@ -22,10 +22,17 @@
 ##
 ## STEP 3:
 ##
-## Select correct queue:
-##    reserved  queue reserved for this course
+## Select the correct queue by modifying the #PBS -q line below
 ##
-#PBS -q gpu
+## half_hour	-  30 minutes
+## one_hour	-   1 hour
+## half_day	-  12 hours
+## one_day	-  24 hours
+## two_day	-  48 hours
+## five_day	- 120 hours
+## ten_day	- 240 hours (by special arrangement)
+##
+#PBS -q half_hour
 ##
 ## STEP 4:
 ##

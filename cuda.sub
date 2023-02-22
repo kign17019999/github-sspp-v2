@@ -14,32 +14,16 @@
 ##
 ## STEP 2:
 ##
-## Select the number of cpus/cores required by modifying the #PBS -l select line below
 ##
-## Normally you select cpus in chunks of 16 cpus
-## The Maximum value for ncpus is 16 and mpiprocs MUST be the same value as ncpus.
-##
-## If more than 16 cpus are required then select multiple chunks of 16
-## e.g.	16 CPUs: select=1:ncpus=16:mpiprocs=16
-##	32 CPUs: select=2:ncpus=16:mpiprocs=16
-##	48 CPUs: select=3:ncpus=16:mpiprocs=16
-##	..etc..
-##
-#PBS -l select=1:ncpus=16:mpiprocs=16
+#PBS -l select=1:ncpus=1:mpiprocs=1:ngpus=1
 ##
 ## STEP 3:
 ##
-## Select the correct queue by modifying the #PBS -q line below
+## Select correct queue:
 ##
-## half_hour	-  30 minutes
-## one_hour	-   1 hour
-## half_day	-  12 hours
-## one_day	-  24 hours
-## two_day	-  48 hours
-## five_day	- 120 hours
-## ten_day	- 240 hours (by special arrangement)
+## for this class we have a special queue
 ##
-#PBS -q half_day
+#PBS -q gpu
 ##PBS -l walltime=1:00:00
 ##
 ## STEP 4:
