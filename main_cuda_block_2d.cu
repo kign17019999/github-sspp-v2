@@ -6,9 +6,6 @@
 #include <helper_cuda.h>  // For checkCudaError macro
 #include <helper_timer.h>  // For CUDA SDK timers
 
-int XBD=128;  // 2d block dimension
-int YBD=8;  // 2d block dimension
-
 void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* y);
 void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
@@ -31,6 +28,8 @@ int main(int argc, char** argv)
   char *program_name = argv[0];
   printf("Run from file %s\n", program_name);
   char* matrix_file;
+  int XBD=128;  // 2d block dimension
+  int YBD=8;  // 2d block dimension 
   if (argc == 2) {
     matrix_file = argv[1];
   } else if(argc == 4){
