@@ -63,6 +63,6 @@ gpus=`echo $CUDA_VISIBLE_DEVICES|awk -F"," '{print NF}'`
 ##
 ./main_cuda_1thread matrices/cant.mtx
 ./main_cuda_block_1d matrices/cant.mtx
-./main_cuda_block_2d matrices/cant.mtx
+./main_cuda_block_2d matrices/cant.mtx 150 300
 
 /bin/rm -f $PBS_JOBID
