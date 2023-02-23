@@ -362,33 +362,55 @@ void ompMatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
 void ompMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int** JAt,
 const double** AZt, const double* x, double* restrict y)
 {
-  const int BLOCK_SIZE = 100;
-  double t[BLOCK_SIZE];
-
-#pragma omp parallel shared(M, N, NNZ, MAXNZ, JAt, AZt, x, y, BLOCK_SIZE)
+#pragma omp parallel shared(M, N, NNZ, MAXNZ, JAt, AZt, x, y, chunk_size)
 {
-#pragma omp for schedule(dynamic)
-  for (int row = 0; row < M; row += BLOCK_SIZE) {
-    for (int i = 0; i < BLOCK_SIZE; i++) {
-      t[i] = 0.0;
+  double t[8]; // temporary variables for 8 rows at a time
+  int i, j, col;
+
+#pragma omp for schedule(dynamic, chunk_size)
+  for (i = 0; i < M; i += 8) {
+    for (j = 0; j < 8; j++) {
+      t[j] = 0;
     }
-    for (int col = 0; col < MAXNZ; col++) {
-      for (int i = 0; i < BLOCK_SIZE; i++) {
-        int j = row + i;
-        if (j < M && col < N) {
-          t[i] += AZt[col][j] * x[JAt[col][j]];
-        }
+
+    // unrolled loop over columns
+    for (col = 0; col < MAXNZ; col++) {
+      if (col < N) {
+        t[0] += AZt[col][i+0] * x[JAt[col][i+0]];
+        t[1] += AZt[col][i+1] * x[JAt[col][i+1]];
+        t[2] += AZt[col][i+2] * x[JAt[col][i+2]];
+        t[3] += AZt[col][i+3] * x[JAt[col][i+3]];
+        t[4] += AZt[col][i+4] * x[JAt[col][i+4]];
+        t[5] += AZt[col][i+5] * x[JAt[col][i+5]];
+        t[6] += AZt[col][i+6] * x[JAt[col][i+6]];
+        t[7] += AZt[col][i+7] * x[JAt[col][i+7]];
       }
     }
-    for (int i = 0; i < BLOCK_SIZE; i++) {
-      int j = row + i;
-      if (j < M) {
-        y[j] = t[i];
+
+    y[i+0] = t[0];
+    y[i+1] = t[1];
+    y[i+2] = t[2];
+    y[i+3] = t[3];
+    y[i+4] = t[4];
+    y[i+5] = t[5];
+    y[i+6] = t[6];
+    y[i+7] = t[7];
+  }
+
+  // handle remaining rows
+#pragma omp for schedule(dynamic, chunk_size)
+  for (i = M - M % 8; i < M; i++) {
+    double t = 0;
+    for (col = 0; col < MAXNZ; col++) {
+      if (col < N) {
+        t += AZt[col][i] * x[JAt[col][i]];
       }
     }
+    y[i] = t;
   }
 }
 }
+
 
 
 
