@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "read_ellpack.h"
+#include "read_ellpack_2dt.h"
 
 int main(int argc, char *argv[]) {
   char* matrix_file = "local_matrices/cage4.mtx"; // set default file name
@@ -10,8 +10,8 @@ int main(int argc, char *argv[]) {
     matrix_file = argv[1];
   }
 
-  struct ellpack_matrix matrix;
-  int ret_code = read_ellpack_matrix(matrix_file, &matrix);
+  struct ellpack_matrix_2dt matrix;
+  int ret_code = read_ellpack_matrix_2dt(matrix_file, &matrix);
   if (ret_code != 0) {
     printf("Failed to read matrix file\n");
     return ret_code;
@@ -23,16 +23,16 @@ int main(int argc, char *argv[]) {
   printf("MAXNZ: %d\n", matrix.MAXNZ);
   printf("JA: ");
   int i, j;
-  for (i = 0; i < matrix.M; i++) {
-    for (j = 0; j < matrix.MAXNZ; j++) {
-      printf("%d ", matrix.JA[i * matrix.MAXNZ + j]);
+  for (i = 0; i < matrix.MAXNZ; i++) {
+    for (j = 0; j < matrix.M; j++) {
+      printf("%d ", matrix.JA[i][j]);
     }
     printf("\n");
   }
   printf("AZ: ");
-  for (i = 0; i < matrix.M; i++) {
-    for (j = 0; j < matrix.MAXNZ; j++) {
-      printf("%.3lf ", matrix.AZ[i * matrix.MAXNZ + j]);
+  for (i = 0; i < matrix.MAXNZ; i++) {
+    for (j = 0; j < matrix.M; j++) {
+      printf("%.3lf ", matrix.AZ[i][j]);
     }
     printf("\n");
   }
