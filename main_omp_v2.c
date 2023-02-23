@@ -254,7 +254,7 @@ int main(int argc, char** argv)
   t1 = wtime();
   for(int tryloop=0; tryloop<ntimes; tryloop++){
     ompMatrixVectorELL_2dt(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ, matrix_ellpack.MAXNZ,
-     (const int**) matrix_ellpack.JA, (const double**) matrix_ellpack.AZ, x, y_o_e2dt);
+     (const int**) JAt, (const double**) AZt, x, y_o_e2dt);
   }
   t2 = wtime();
 
