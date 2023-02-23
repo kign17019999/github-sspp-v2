@@ -14,7 +14,7 @@ void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
 // void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
 //  const double* AZ, const double* x, double* restrict y);
 void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int** JA,
- const double** AZ, const double* x, double* y)
+ const double** AZ, const double* x, double* y);
 double check_result(int M, double* restrict y0, double* restrict y);
 void save_result_omp(char *program_name, char* matrix_file, int M, int N,
                  int nthreads, int chunk_size,
@@ -28,7 +28,7 @@ void ompMatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
 // void ompMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int* JA,
 //  const double* AZ, const double* x, double* restrict y);
 void ompMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int** JA,
-const double** AZ, const double* x, double* restrict y)
+const double** AZ, const double* x, double* restrict y);
 
 int main(int argc, char** argv) 
 {
