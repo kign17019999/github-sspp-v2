@@ -18,7 +18,7 @@
 ## The select line below selects 1 chunk of 4 cpus 
 ## Make sure to match ncpus to the number of threads 
 ##
-#PBS -l select=1:ncpus=8:mpiprocs=1
+#PBS -l select=1:ncpus=16:mpiprocs=16
 ##
 ## STEP 3:
 ##
@@ -32,7 +32,7 @@
 ## five_day	- 120 hours
 ## ten_day	- 240 hours (by special arrangement)
 ##
-#PBS -q half_hour
+#PBS -q half_day
 ##
 ## STEP 4:
 ##
