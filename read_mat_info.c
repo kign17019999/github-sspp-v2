@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <dirent.h>
 #include "mmio.h"
 
 void save_matrix_metadata(char* filename, char* data_type, char* data_format, int M, int N, int NNZ)
@@ -31,7 +32,7 @@ void save_matrix_metadata(char* filename, char* data_type, char* data_format, in
     fclose(fp);
 }
 
-int main(int argc, char *argv[])
+int process_matrix_file(char* filename)
 {
     int ret_code;
     MM_typecode matcode;
@@ -40,41 +41,35 @@ int main(int argc, char *argv[])
     char* data_type;
     char* data_format;
 
-    if (argc < 2)
+    if ((f = fopen(filename, "r")) == NULL)
     {
-        fprintf(stderr, "Usage: %s [matrix-market-filename]\n", argv[0]);
-        exit(1);
-    }
-
-    if ((f = fopen(argv[1], "r")) == NULL)
-    {
-        printf("Error: failed to open input file '%s'\n", argv[1]);
-        exit(1);
+        printf("Error: failed to open input file '%s'\n", filename);
+        return 1;
     }
 
     if (mm_read_banner(f, &matcode) != 0)
     {
-        printf("Error: could not process Matrix Market banner.\n");
-        exit(1);
+        printf("Error: could not process Matrix Market banner in file '%s'\n", filename);
+        return 1;
     }
 
     if (!mm_is_valid(matcode))
     {
-        printf("Error: invalid Matrix Market file.\n");
-        exit(1);
+        printf("Error: invalid Matrix Market file '%s'\n", filename);
+        return 1;
     }
 
     if (mm_is_complex(matcode))
     {
-        printf("Error: this code does not support complex matrices.\n");
-        exit(1);
+        printf("Error: this code does not support complex matrices in file '%s'\n", filename);
+        return 1;
     }
 
     // Get matrix dimensions and NNZ
     if ((ret_code = mm_read_mtx_crd_size(f, &M, &N, &NNZ)) != 0)
     {
-        printf("Error: failed to read matrix dimensions and NNZ.\n");
-        exit(1);
+        printf("Error: failed to read matrix dimensions and NNZ in file '%s'\n", filename);
+        return 1;
     }
 
     // Determine data type
@@ -88,8 +83,8 @@ int main(int argc, char *argv[])
     }
     else
     {
-        printf("Error: unsupported data type.\n");
-        exit(1);
+        printf("Error: unsupported data type in file '%s'\n", filename);
+        return 1;
     }
 
     // Determine data format
@@ -103,7 +98,48 @@ int main(int argc, char *argv[])
     }
 
     // Save matrix metadata to CSV file
-    save_matrix_metadata(argv[1], data_type, data_format, M, N, NNZ);
+    save_matrix_metadata(filename, data_type, data_format, M, N, NNZ);
 
     return 0;
 }
+
+int main(int argc, char *argv[])
+{
+    char* dir_name;
+    DIR* dir;
+    struct dirent* ent;
+
+    if (argc < 2)
+    {
+        fprintf(stderr, "Usage: %s [directory-name]\n", argv[0]);
+        exit(1);
+    }
+
+    dir_name = argv[1];
+    dir = opendir(dir_name);
+    if (dir == NULL)
+    {
+        printf("Error: failed to open directory '%s'\n", dir_name);
+        exit(1);
+    }
+
+    while ((ent = readdir(dir)) != NULL)
+    {
+        if (ent->d_name[0] == '.') continue;  //skip hidden files
+
+        char* filename = (char*) malloc(strlen(dir_name) + strlen(ent->d_name) + 2);
+        sprintf(filename, "%s/%s", dir_name, ent->d_name);
+
+        if (process_matrix_file(filename) != 0)
+        {
+            printf("Error processing file '%s'\n", filename);
+        }
+
+        free(filename);
+    }
+
+    closedir(dir);
+
+    return 0;
+}
+
