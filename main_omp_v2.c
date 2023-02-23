@@ -398,7 +398,7 @@ void save_result_omp(char *program_name, char* matrix_file, int M, int N,
 {
   // open file for appending or create new file with header
   FILE *fp;
-  char filename[] = "result_omp_test1.csv";  //file name
+  char filename[] = "result_omp_test2.csv";  //file name
   fp = fopen(filename, "a+");
   if (fp == NULL) {
     printf("Error opening file.\n");

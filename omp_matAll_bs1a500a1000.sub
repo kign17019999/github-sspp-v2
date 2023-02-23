@@ -69,7 +69,7 @@ for BS in 1 500 1000
 do
     for dataset in "${datasets[@]}";
     do     
-        ./omp2 "matrices/${dataset}.mtx" 16 $BD
+        ./omp2 "matrices/${dataset}.mtx" 16 $BS
     done
 done
 

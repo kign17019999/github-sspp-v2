@@ -1,7 +1,8 @@
 #include <stdlib.h>  // Standard input/output library
 #include <stdio.h>  // Standard library
 #include "read_csr.h" // For import matrix into CSR format
-#include "read_ellpack.h"  // For import matrix into ELLPACK format
+#include "read_ellpack.h"  // For import matrix into ELLPACK format store in 1D array.
+#include "read_ellpack_2d.h"  // For import matrix into ELLPACK format store in 2D array.
 #include <cuda_runtime.h>  // For CUDA runtime API
 #include <helper_cuda.h>  // For checkCudaError macro
 #include <helper_timer.h>  // For CUDA SDK timers
@@ -20,10 +21,14 @@ void save_result_cuda(char *program_name, char* matrix_file, int M, int N,
                  double time_csr_gpu, double mflops_csr_gpu, double max_diff_csr_gpu,
                  double time_ell_gpu, double mflops_ell_gpu, double max_diff_ell_gpu);
 
-__global__ void gpuMatrixVectorCSR(const int XBD, const int YBD, int M, int N, const int* IRP, const int* JA,
- const double* AZ, const double* x, double* y);
-__global__ void gpuMatrixVectorELL(const int XBD, const int YBD, int M, int N, int NNZ, int MAXNZ, const int* JA,
- const double* AZ, const double* x, double* y);
+__global__ void gpuMatrixVectorCSR(const int XBD, const int YBD, int M, int N, const int* IRP,
+ const int* JA, const double* AZ, const double* x, double* y);
+__global__ void gpuMatrixVectorELL(const int XBD, const int YBD, int M, int N, int NNZ, int MAXNZ,
+ const int* JA, const double* AZ, const double* x, double* y);
+__global__ void gpuMatrixVectorELL_2d(const int XBD, const int YBD, int M, int N, int NNZ, int MAXNZ,
+ const int** JA, const double** AZ, const double* x, double* y)
+__global__ void gpuMatrixVectorELL_2dt(const int XBD, const int YBD, int M, int N, int NNZ, int MAXNZ,
+ const int** JAt, const double** AZt, const double* x, double* y);
 
 int main(int argc, char** argv) 
 {
@@ -59,7 +64,8 @@ int main(int argc, char** argv)
     printf(" Failed to read matrix file\n");
     return ret_code;
   }
-
+  printf("finish loading matrix into CSR format\n");
+  
   // Save matrix file into memory in ELLPACK format.
   struct ellpack_matrix matrix_ellpack;
   ret_code = read_ellpack_matrix(matrix_file, &matrix_ellpack);
@@ -67,7 +73,29 @@ int main(int argc, char** argv)
     printf(" Failed to read matrix file\n");
     return ret_code;
   }
+  printf("finish loading matrix into 1D ELLPACK format\n");
 
+  // Save matrix file into memory in ELLPACK format store in 2D array.
+  struct ellpack_matrix_2d matrix_ellpack_2d;
+  ret_code = read_ellpack_matrix_2d(matrix_file, &matrix_ellpack_2d);
+  if (ret_code != 0) {
+    printf(" Failed to read matrix file\n");
+    return ret_code;
+  }
+  printf("finish loading matrix into 2D ELLPACK format\n");
+
+  //transpose matrix JA and AZ from 2D ELLPACK format >. to achieve row-wise
+  int **JAt = (int **) malloc(matrix_ellpack_2d.MAXNZ * sizeof(int *));
+  double **AZt = (double **) malloc(matrix_ellpack_2d.MAXNZ * sizeof(double *));
+  for (int j = 0; j < matrix_ellpack_2d.MAXNZ; j++) {
+    JAt[j] = (int *) malloc(matrix_ellpack_2d.M * sizeof(int));
+    AZt[j] = (double *) malloc(matrix_ellpack_2d.M * sizeof(double));
+    for (int i = 0; i < matrix_ellpack_2d.M; i++) {
+      JAt[j][i] = matrix_ellpack_2d.JA[i][j];
+      AZt[j][i] = matrix_ellpack_2d.AZ[i][j];
+    }
+  }
+  printf("finish loading matrix into 2D tranpose ELLPACK format\n");
   // ----------------------- Host memory initialisation ----------------------- //
   
   double* x = (double*) malloc(sizeof(double)*matrix_csr.N);
@@ -262,7 +290,8 @@ double check_result(int M, double* y0, double* y)
 }
 
 // GPU implementation of matrix_vector product in CSR format
-__global__ void gpuMatrixVectorCSR(const int XBD, const int YBD, int M, int N, const int* IRP, const int* JA, const double* AZ, const double* x, double* y)
+__global__ void gpuMatrixVectorCSR(const int XBD, const int YBD, int M, int N, const int* IRP,
+ const int* JA, const double* AZ, const double* x, double* y)
 {
   int row = blockIdx.x*blockDim.y + threadIdx.y;
   int tid_c = threadIdx.x;
@@ -303,8 +332,9 @@ __global__ void gpuMatrixVectorCSR(const int XBD, const int YBD, int M, int N, c
   }
 }
 
-// GPU implementation of matrix_vector product in ELLPACK format
-__global__ void gpuMatrixVectorELL(const int XBD, const int YBD, int M, int N, int NNZ, int MAXNZ, const int* JA, const double* AZ, const double* x, double* y)
+// GPU implementation of matrix_vector product in ELLPACK format // 1D //
+__global__ void gpuMatrixVectorELL(const int XBD, const int YBD, int M, int N, int NNZ, int MAXNZ,
+ const int* JA, const double* AZ, const double* x, double* y)
 {
   int row = blockIdx.x*blockDim.y + threadIdx.y;
   int tid_c = threadIdx.x;
@@ -346,6 +376,94 @@ __global__ void gpuMatrixVectorELL(const int XBD, const int YBD, int M, int N, i
     }
   }
 }
+
+// GPU implementation of matrix_vector product in ELLPACK format // 2D //
+__global__ void gpuMatrixVectorELL_2d(const int XBD, const int YBD, int M, int N, int NNZ, int MAXNZ,
+ const int** JA, const double** AZ, const double* x, double* y)
+{
+  int row = blockIdx.x*blockDim.y + threadIdx.y;
+  int tid_c = threadIdx.x;
+  int tid_r = threadIdx.y;
+  int num_threads_per_row = blockDim.x;
+
+  // 1D shared memory is being used because the dimension of the shared memory needs to be specified at runtime.
+  extern __shared__ double sdata[];
+
+  if (row < M) {
+    double t = 0.0;
+    for (int col = tid_c; col < MAXNZ; col += num_threads_per_row) {
+      t += AZ[row][col] * x[JA[row][col]];
+    }
+    // Starting address of indexing 1d shared mamory for 2d data
+    int sindex = tid_r*XBD+tid_c;
+    sdata[sindex] = t;
+    __syncthreads();
+
+    // Perform row-reduction operation to sum the elements in sdata and store the result in y[row].
+    int prev_stride = num_threads_per_row/2;
+    for (int stride = num_threads_per_row/2; stride > 0; stride >>= 1) {
+      if (tid_c < stride) {
+        if(tid_c == stride -1 && prev_stride%2==1){
+          sdata[sindex] += sdata[sindex + stride] + sdata[sindex + stride +1];
+        }else{
+          sdata[sindex] += sdata[sindex + stride];
+        }
+      }
+      __syncthreads();
+      prev_stride=stride;
+    }
+
+    // Thread 0 writes the final result to global memory
+    if (tid_c == 0) {
+      y[row] = sdata[sindex];
+    }
+  }
+}
+
+// GPU implementation of matrix_vector product in ELLPACK format // 2D transposed //
+__global__ void gpuMatrixVectorELL_2dt(const int XBD, const int YBD, int M, int N, int NNZ, int MAXNZ,
+ const int** JAt, const double** AZt, const double* x, double* y)
+{
+  int row = blockIdx.x*blockDim.y + threadIdx.y;
+  int tid_c = threadIdx.x;
+  int tid_r = threadIdx.y;
+  int num_threads_per_row = blockDim.x;
+
+  // 1D shared memory is being used because the dimension of the shared memory needs to be specified at runtime.
+  extern __shared__ double sdata[];
+
+  if (row < M) {
+    double t = 0.0;
+    for (int col = tid_c; col < MAXNZ; col += num_threads_per_row) {
+      t += AZt[col][row] * x[JAt[col][row]];
+    }
+    // Starting address of indexing 1d shared mamory for 2d data
+    int sindex = tid_r*XBD+tid_c;
+    sdata[sindex] = t;
+    __syncthreads();
+
+    // Perform row-reduction operation to sum the elements in sdata and store the result in y[row].
+    int prev_stride = num_threads_per_row/2;
+    for (int stride = num_threads_per_row/2; stride > 0; stride >>= 1) {
+      if (tid_c < stride) {
+        if(tid_c == stride -1 && prev_stride%2==1){
+          sdata[sindex] += sdata[sindex + stride] + sdata[sindex + stride +1];
+        }else{
+          sdata[sindex] += sdata[sindex + stride];
+        }
+      }
+      __syncthreads();
+      prev_stride=stride;
+    }
+
+    // Thread 0 writes the final result to global memory
+    if (tid_c == 0) {
+      y[row] = sdata[sindex];
+    }
+  }
+}
+
+
 
 // function to save result into CSV file
 void save_result_cuda(char *program_name, char* matrix_file, int M, int N,
