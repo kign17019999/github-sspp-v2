@@ -104,15 +104,15 @@ int main(int argc, char** argv)
   ///////////-------------------///////////
   printf("2D: \n");
   printf("JA: ");
-  for (i = 0; i < matrix_ellpack_2d.M; i++) {
-    for (j = 0; j < matrix_ellpack_2d.MAXNZ; j++) {
+  for (int i = 0; i < matrix_ellpack_2d.M; i++) {
+    for (int j = 0; j < matrix_ellpack_2d.MAXNZ; j++) {
       printf("%d ", matrix_ellpack_2d.JA[i][j]);
     }
     printf("\n    ");
   }
   printf("AZ: ");
-  for (i = 0; i < matrix_ellpack_2d.M; i++) {
-    for (j = 0; j < matrix_ellpack_2d.MAXNZ; j++) {
+  for (int i = 0; i < matrix_ellpack_2d.M; i++) {
+    for (int j = 0; j < matrix_ellpack_2d.MAXNZ; j++) {
       printf("%.3lf ", matrix_ellpack_2d.AZ[i][j]);
     }
     printf("\n    ");
@@ -121,15 +121,15 @@ int main(int argc, char** argv)
 
   printf("2D tranpose: \n");
   printf("JA: ");
-  for (i = 0; i < matrix_ellpack_2d.MAXNZ; i++) {
-    for (j = 0; j < matrix_ellpack_2d.M; j++) {
+  for (int i = 0; i < matrix_ellpack_2d.MAXNZ; i++) {
+    for (int j = 0; j < matrix_ellpack_2d.M; j++) {
       printf("%d ", JAt[i][j]);
     }
     printf("\n    ");
   }
   printf("AZ: ");
-  for (i = 0; i < matrix_ellpack_2d.MAXNZ; i++) {
-    for (j = 0; j < matrix_ellpack_2d.M; j++) {
+  for (int i = 0; i < matrix_ellpack_2d.MAXNZ; i++) {
+    for (int j = 0; j < matrix_ellpack_2d.M; j++) {
       printf("%.3lf ", AZt[i][j]);
     }
     printf("\n    ");
@@ -280,7 +280,7 @@ int main(int argc, char** argv)
                  time_csr_omp, mflops_csr_omp, max_diff_csr_omp,
                  time_ell_1d_omp, mflops_ell_1d_omp, max_diff_ell_1d_omp,
                  time_ell_2d_omp, mflops_ell_2d_omp, max_diff_ell_2d_omp,
-                 time_ell_2dt_omp, mflops_ell_2dt_omp, max_diff_ell_2dt_omp,);
+                 time_ell_2dt_omp, mflops_ell_2dt_omp, max_diff_ell_2dt_omp);
 
   // ------------------------------- Cleaning up ------------------------------ //
 
