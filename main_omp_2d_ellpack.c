@@ -104,7 +104,7 @@ int main(int argc, char** argv)
   t1 = wtime();
   for(int tryloop=0; tryloop<ntimes; tryloop++){
     MatrixVectorELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ,
-    matrix_ellpack.MAXNZ, matrix_ellpack.JA, matrix_ellpack.AZ, x, y);
+    (const int**) matrix_ellpack.MAXNZ, (const double**) matrix_ellpack.JA, matrix_ellpack.AZ, x, y);
   }
   t2 = wtime();
 
@@ -141,8 +141,8 @@ int main(int argc, char** argv)
   // ---- perform parallel code in ELLPACK format ---- //
   t1 = wtime();
   for(int tryloop=0; tryloop<ntimes; tryloop++){
-    ompMatrixVectorELL(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ, matrix_ellpack.MAXNZ, matrix_ellpack.JA,
-     matrix_ellpack.AZ, x, y);
+    ompMatrixVectorELL(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ, matrix_ellpack.MAXNZ, (const int**) matrix_ellpack.JA,
+     (const double**) matrix_ellpack.AZ, x, y);
   }
   t2 = wtime();
 
