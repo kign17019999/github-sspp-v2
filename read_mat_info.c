@@ -7,8 +7,8 @@ void save_matrix_metadata(char* filename, char* data_type, char* data_format, in
 {
     // open file for appending or create new file with header
     FILE *fp;
-    char filename[] = "mat_info.csv";  //file name
-    fp = fopen(filename, "a+");
+    char save_file_name[] = "mat_info.csv";  //file name
+    fp = fopen(save_file_name, "a+");
     if (fp == NULL) {
         printf("Error opening file.\n");
         exit(1);
