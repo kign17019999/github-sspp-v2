@@ -104,7 +104,7 @@ int main(int argc, char** argv)
   t1 = wtime();
   for(int tryloop=0; tryloop<ntimes; tryloop++){
     MatrixVectorELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ,
-    (const int**) matrix_ellpack.MAXNZ, (const double**) matrix_ellpack.JA, matrix_ellpack.AZ, x, y);
+    matrix_ellpack.MAXNZ, (const int**) matrix_ellpack.JA, (const double**) matrix_ellpack.AZ, x, y);
   }
   t2 = wtime();
 
