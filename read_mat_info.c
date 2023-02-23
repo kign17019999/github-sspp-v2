@@ -5,16 +5,29 @@
 
 void save_matrix_metadata(char* filename, char* data_type, char* data_format, int M, int N, int NNZ)
 {
-    FILE* fp = fopen(filename, "w");
-    if(fp == NULL)
-    {
-        printf("Error: failed to create output file '%s'\n", filename);
+    // open file for appending or create new file with header
+    FILE *fp;
+    char filename[] = "mat_info.csv";  //file name
+    fp = fopen(filename, "a+");
+    if (fp == NULL) {
+        printf("Error opening file.\n");
         exit(1);
     }
+    // check if file is empty
+    fseek(fp, 0, SEEK_END);
+    long file_size = ftell(fp);
+    if (file_size == 0) {
+        // add header row
+        fprintf(fp, "filename,Data Type,Data Format,M,N,NNZ\n");
+    }
 
-    fprintf(fp, "Data Type,Data Format,M,N,NNZ\n");
-    fprintf(fp, "%s,%s,%d,%d,%d\n", data_type, data_format, M, N, NNZ);
+    // write new row to file
+    fprintf(fp, "%s,%s,%s,%d,%d,%d\n", filename, data_type, data_format, M, N, NNZ);
+     
+    // print into console
+    fprintf(stdout, "filename: %s, Data Type: %s, Data Format: %s, M: %d, N: %d, NNZ: %d\n", filename, data_type, data_format, M, N, NNZ);
 
+    // close file
     fclose(fp);
 }
 
@@ -26,7 +39,6 @@ int main(int argc, char *argv[])
     int M, N, NNZ;
     char* data_type;
     char* data_format;
-    char* output_filename = "matrix_info.csv";
 
     if (argc < 2)
     {
@@ -91,7 +103,7 @@ int main(int argc, char *argv[])
     }
 
     // Save matrix metadata to CSV file
-    save_matrix_metadata(output_filename, data_type, data_format, M, N, NNZ);
+    save_matrix_metadata(argv[1], data_type, data_format, M, N, NNZ);
 
     return 0;
 }
