@@ -76,8 +76,11 @@ int main(int argc, char** argv)
   // ----------------------- Host memory initialisation ----------------------- //
 
   double* x = (double*) malloc(sizeof(double)*matrix_csr.N);
-  double* y = (double*) malloc(sizeof(double)*matrix_csr.M);
   double* y0 = (double*) malloc(sizeof(double)*matrix_csr.M);
+  double* y_s_e = (double*) malloc(sizeof(double)*matrix_csr.M);
+  double* y_o_c = (double*) malloc(sizeof(double)*matrix_csr.M);
+  double* y_o_e = (double*) malloc(sizeof(double)*matrix_csr.M);
+  
   int row;
   for ( row = 0; row < matrix_csr.M; ++row) {
     x[row] = 100.0f * ((double) rand()) / RAND_MAX;      
@@ -104,13 +107,13 @@ int main(int argc, char** argv)
   t1 = wtime();
   for(int tryloop=0; tryloop<ntimes; tryloop++){
     MatrixVectorELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ,
-    matrix_ellpack.MAXNZ, (const int**) matrix_ellpack.JA, (const double**) matrix_ellpack.AZ, x, y);
+    matrix_ellpack.MAXNZ, (const int**) matrix_ellpack.JA, (const double**) matrix_ellpack.AZ, x, y_s_e);
   }
   t2 = wtime();
 
   double time_ell_serial = (t2-t1)/ntimes;
   double mflops_ell_serial = (2.0e-6)*matrix_ellpack.NNZ/time_ell_serial;
-  double max_diff_ell_serial = check_result(matrix_csr.M, y0, y);
+  double max_diff_ell_serial = check_result(matrix_csr.M, y0, y_s_e);
 
   fprintf(stdout," [ELL 1Td] with 1 thread: time %lf  MFLOPS %lf max_diff %lf\n",
 	  time_ell_serial,mflops_ell_serial, max_diff_ell_serial);
@@ -121,13 +124,13 @@ int main(int argc, char** argv)
   t1 = wtime();
   for(int tryloop=0; tryloop<ntimes; tryloop++){
     ompMatrixVectorCSR(matrix_csr.M, matrix_csr.N, matrix_csr.IRP,
-    matrix_csr.JA, matrix_csr.AZ, x, y);
+    matrix_csr.JA, matrix_csr.AZ, x, y_o_c);
   }
   t2 = wtime();
 
   double time_csr_omp = (t2-t1)/ntimes;
   double mflops_csr_omp = (2.0e-6)*matrix_csr.NNZ/time_csr_omp;
-  double max_diff_csr_omp = check_result(matrix_csr.M, y0, y);
+  double max_diff_csr_omp = check_result(matrix_csr.M, y0, y_o_c);
 
 #pragma omp parallel 
 {
@@ -142,13 +145,13 @@ int main(int argc, char** argv)
   t1 = wtime();
   for(int tryloop=0; tryloop<ntimes; tryloop++){
     ompMatrixVectorELL(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ, matrix_ellpack.MAXNZ, (const int**) matrix_ellpack.JA,
-     (const double**) matrix_ellpack.AZ, x, y);
+     (const double**) matrix_ellpack.AZ, x, y_o_e);
   }
   t2 = wtime();
 
   double time_ell_omp = (t2-t1)/ntimes;
   double mflops_ell_omp = (2.0e-6)*matrix_ellpack.NNZ/time_ell_omp;
-  double max_diff_ell_omp = check_result(matrix_csr.M, y0, y);
+  double max_diff_ell_omp = check_result(matrix_csr.M, y0, y_o_e);
 
 #pragma omp parallel 
 {
@@ -176,8 +179,10 @@ int main(int argc, char** argv)
   free(matrix_ellpack.JA);
   free(matrix_ellpack.AZ);
   free(x);
-  free(y);
   free(y0);
+  free(y_s_e);
+  free(y_o_c);
+  free(y_o_e);
 
   return 0;
 }

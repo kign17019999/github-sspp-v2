@@ -1,7 +1,7 @@
 #include <stdlib.h>  // Standard input/output library
 #include <stdio.h>  // Standard library
 #include "read_csr.h" // For import matrix into CSR format
-#include "read_ellpack.h"  // For import matrix into ELLPACK format
+#include "read_ellpack_2d.h"  // For import matrix into ELLPACK format
 #include "wtime.h"  // For timing the procress
 #include <omp.h>  // For OpenMP programming
 
@@ -11,8 +11,10 @@ int chunk_size=256;
 
 void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* restrict y);
-void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
- const double* AZ, const double* x, double* restrict y);
+// void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
+//  const double* AZ, const double* x, double* restrict y);
+void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int** JA,
+ const double** AZ, const double* x, double* y);
 double check_result(int M, double* restrict y0, double* restrict y);
 void save_result_omp(char *program_name, char* matrix_file, int M, int N,
                  int nthreads, int chunk_size,
@@ -23,8 +25,10 @@ void save_result_omp(char *program_name, char* matrix_file, int M, int N,
 
 void ompMatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* restrict y) ;
-void ompMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int* JA,
- const double* AZ, const double* x, double* restrict y);
+// void ompMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int* JA,
+//  const double* AZ, const double* x, double* restrict y);
+void ompMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int** JA,
+const double** AZ, const double* x, double* restrict y);
 
 int main(int argc, char** argv) 
 {
@@ -62,11 +66,26 @@ int main(int argc, char** argv)
   }
 
   // Save matrix file into memory in ELLPACK format.
-  struct ellpack_matrix matrix_ellpack;
-  ret_code = read_ellpack_matrix(matrix_file, &matrix_ellpack);
+  struct ellpack_matrix_2d matrix_ellpack;
+  ret_code = read_ellpack_matrix_2d(matrix_file, &matrix_ellpack);
   if (ret_code != 0) {
     printf(" Failed to read matrix file\n");
     return ret_code;
+  }
+
+  //transpose matrix JA and AZ from ELLPACK format >. to achieve row-wise
+  int **JAt = (int **) malloc(matrix_ellpack.MAXNZ * sizeof(int *));
+  double **AZt = (double **) malloc(matrix_ellpack.MAXNZ * sizeof(double *));
+  for (int i = 0; i < matrix_ellpack.MAXNZ; i++) {
+    JAt[i] = (int *) malloc(matrix_ellpack.M * sizeof(int));
+    AZt[i] = (double *) malloc(matrix_ellpack.M * sizeof(double));
+  }
+
+  for (int i = 0; i < matrix_ellpack.M; i++) {
+    for (int j = 0; j < matrix_ellpack.MAXNZ; j++) {
+      JAt[j][i] = matrix_ellpack.JA[i][j];
+      AZt[j][i] = matrix_ellpack.AZ[i][j];
+    }
   }
 
   // ----------------------- Host memory initialisation ----------------------- //
@@ -103,7 +122,7 @@ int main(int argc, char** argv)
   t1 = wtime();
   for(int tryloop=0; tryloop<ntimes; tryloop++){
     MatrixVectorELLPACK(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ,
-    matrix_ellpack.MAXNZ, matrix_ellpack.JA, matrix_ellpack.AZ, x, y_s_e);
+    matrix_ellpack.MAXNZ, (const int**) JAt, (const double**) AZt, x, y_s_e);
   }
   t2 = wtime();
 
@@ -140,8 +159,8 @@ int main(int argc, char** argv)
   // ---- perform parallel code in ELLPACK format ---- //
   t1 = wtime();
   for(int tryloop=0; tryloop<ntimes; tryloop++){
-    ompMatrixVectorELL(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ, matrix_ellpack.MAXNZ, matrix_ellpack.JA,
-     matrix_ellpack.AZ, x, y_o_e);
+    ompMatrixVectorELL(matrix_ellpack.M, matrix_ellpack.N, matrix_ellpack.NNZ, matrix_ellpack.MAXNZ, (const int**) JAt,
+     (const double**) AZt, x, y_o_e);
   }
   t2 = wtime();
 
@@ -199,17 +218,51 @@ void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
 }
 
 // Simple CPU implementation of matrix_vector product in ELLPACK format.
-void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
- const double* AZ, const double* x, double* y) 
+// void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
+//  const double* AZ, const double* x, double* y) 
+// {
+//   int row, col;
+//   double t;
+//   int ja_idx;
+//   for (row = 0; row < M; row++) {
+//     t = 0;
+//     for (col = 0; col < MAXNZ; col++) {
+//       ja_idx = row * MAXNZ + col;
+//       t += AZ[ja_idx] * x[JA[ja_idx]];
+//     }
+//     y[row] = t;
+//   }
+// }
+
+// Simple CPU implementation of matrix_vector product in ELLPACK format.
+// void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int** JA,
+// const double** AZ, const double* x, double* y)
+// {
+//   int row, col;
+//   double t;
+//   for (row = 0; row < M; row++) {
+//     t = 0;
+//     for (col = 0; col < MAXNZ; col++) {
+//       if (col < N) {
+//         t += AZ[row][col] * x[JA[row][col]];
+//       }
+//     }
+//     y[row] = t;
+//   }
+// }
+
+// Simple CPU implementation of matrix_vector product in ELLPACK format.
+void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int** JAt,
+ const double** AZt, const double* x, double* y)
 {
   int row, col;
   double t;
-  int ja_idx;
   for (row = 0; row < M; row++) {
     t = 0;
     for (col = 0; col < MAXNZ; col++) {
-      ja_idx = row * MAXNZ + col;
-      t += AZ[ja_idx] * x[JA[ja_idx]];
+      if (col < N) {
+        t += AZt[col][row] * x[JAt[col][row]];
+      }
     }
     y[row] = t;
   }
@@ -246,24 +299,65 @@ void ompMatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
 }
 
 // OpenMP implementation of matrix_vector product in ELLPACK format
-void ompMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int* JA,
- const double* AZ, const double* x, double* restrict y) 
+// void ompMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int* JA,
+//  const double* AZ, const double* x, double* restrict y) 
+// {
+// #pragma omp parallel shared(M, N, NNZ, MAXNZ, JA, AZ, x, y, chunk_size)
+// {
+//   double t;
+//   int ja_idx;
+// #pragma omp for schedule(dynamic, chunk_size)
+//   for (int row = 0; row < M; row++) {
+//     t = 0;
+//     for (int col = 0; col < MAXNZ; col++) {
+//       ja_idx = row * MAXNZ + col;
+//       t += AZ[ja_idx] * x[JA[ja_idx]];
+//     }
+//     y[row] = t;
+//   }
+// }
+// }
+
+// OpenMP implementation of matrix_vector product in ELLPACK format
+// void ompMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int** JA,
+// const double** AZ, const double* x, double* restrict y)
+// {
+// #pragma omp parallel shared(M, N, NNZ, MAXNZ, JA, AZ, x, y, chunk_size)
+// {
+//   double t;
+// #pragma omp for schedule(dynamic, chunk_size)
+//   for (int row = 0; row < M; row++) {
+//     t = 0;
+//     for (int col = 0; col < MAXNZ; col++) {
+//       if (col < N) {
+//         t += AZ[row][col] * x[JA[row][col]];
+//       }
+//     }
+//     y[row] = t;
+//   }
+// }
+// }
+
+// OpenMP implementation of matrix_vector product in ELLPACK format
+void ompMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int** JAt,
+const double** AZt, const double* x, double* restrict y)
 {
-#pragma omp parallel shared(M, N, NNZ, MAXNZ, JA, AZ, x, y, chunk_size)
+#pragma omp parallel shared(M, N, NNZ, MAXNZ, JAt, AZt, x, y, chunk_size)
 {
   double t;
-  int ja_idx;
 #pragma omp for schedule(dynamic, chunk_size)
   for (int row = 0; row < M; row++) {
     t = 0;
     for (int col = 0; col < MAXNZ; col++) {
-      ja_idx = row * MAXNZ + col;
-      t += AZ[ja_idx] * x[JA[ja_idx]];
+      if (col < N) {
+        t += AZt[col][row] * x[JAt[col][row]];
+      }
     }
     y[row] = t;
   }
 }
 }
+
 
 // function to save result into CSV file
 void save_result_omp(char *program_name, char* matrix_file, int M, int N,
