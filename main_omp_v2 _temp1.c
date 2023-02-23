@@ -101,6 +101,43 @@ int main(int argc, char** argv)
   }
   printf("finish loading matrix into 2D tranpose ELLPACK format\n");
 
+  ///////////-------------------///////////
+  printf("2D: \n");
+  printf("JA: ");
+  for (int i = 0; i < matrix_ellpack_2d.M; i++) {
+    for (int j = 0; j < matrix_ellpack_2d.MAXNZ; j++) {
+      printf("%d ", matrix_ellpack_2d.JA[i][j]);
+    }
+    printf("\n    ");
+  }
+  printf("AZ: ");
+  for (int i = 0; i < matrix_ellpack_2d.M; i++) {
+    for (int j = 0; j < matrix_ellpack_2d.MAXNZ; j++) {
+      printf("%.3lf ", matrix_ellpack_2d.AZ[i][j]);
+    }
+    printf("\n    ");
+  }
+  printf("-----------------\n");
+
+  printf("2D tranpose: \n");
+  printf("JA: ");
+  for (int i = 0; i < matrix_ellpack_2d.MAXNZ; i++) {
+    for (int j = 0; j < matrix_ellpack_2d.M; j++) {
+      printf("%d ", JAt[i][j]);
+    }
+    printf("\n    ");
+  }
+  printf("AZ: ");
+  for (int i = 0; i < matrix_ellpack_2d.MAXNZ; i++) {
+    for (int j = 0; j < matrix_ellpack_2d.M; j++) {
+      printf("%.3lf ", AZt[i][j]);
+    }
+    printf("\n    ");
+  }
+  printf("-----------------\n");
+
+  ///////////-------------------///////////
+
   // ----------------------- Host memory initialisation ----------------------- //
 
   double* x = (double*) malloc(sizeof(double)*matrix_csr.N);
