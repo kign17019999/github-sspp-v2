@@ -105,7 +105,7 @@ int main(int argc, char** argv)
 
   double* x = (double*) malloc(sizeof(double)*matrix_csr.N);
   double* y_s_c = (double*) malloc(sizeof(double)*matrix_csr.M); // result of serial csr
-  double* y_s_e = (double*) malloc(sizeof(double)*matrix_csr.M);
+  double* y_s_e = (double*) malloc(sizeof(double)*matrix_csr.M); // result of serial ellpack 1d
   double* y_o_c = (double*) malloc(sizeof(double)*matrix_csr.M); // result of omp csr
   double* y_o_e1d = (double*) malloc(sizeof(double)*matrix_csr.M); // result of omp ellpack 1d
   double* y_o_e2d = (double*) malloc(sizeof(double)*matrix_csr.M); // result of omp ellpack 2d
