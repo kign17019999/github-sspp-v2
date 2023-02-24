@@ -62,8 +62,8 @@ gpus=`echo $CUDA_VISIBLE_DEVICES|awk -F"," '{print NF}'`
 ## below:
 ##
 
-./main_cuda_block_2d_v2 matrices/PR02R.mtx 128 8 new_csv_gpu
-./main_cuda_block_2d_v2 matrices/cant.mtx 128 8 new_csv_gpu
+./main_cuda_block_2d_v2 matrices/PR02R.mtx 128 8 new_csv_gpu.csv
+./main_cuda_block_2d_v2 matrices/cant.mtx 128 8 new_csv_gpu.csv
 
 
 /bin/rm -f $PBS_JOBID
