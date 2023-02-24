@@ -581,7 +581,7 @@ void save_result_cuda(char *program_name,      char* matrix_file,          int M
   }
 
   // write new row to file
-  fprintf(fp, "%s,%s,%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
+  fprintf(fp, "%s,%s,%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
           program_name,      matrix_file,        M,                         N,
           cudaXBD,           cudaYBD,            cudaXGD,                   cudaYGD,
           time_csr_serial,   mflops_csr_serial,  max_abs_diff_csr_serial,   max_rel_diff_csr_serial,

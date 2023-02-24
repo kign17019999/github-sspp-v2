@@ -433,7 +433,7 @@ fprintf(fp, "time_ell_2dt_omp,mflops_ell_2dt_omp,max_abs_diff_ell_2dt_omp,max_re
   }
 
   // write new row to file
-  fprintf(fp, "%s,%s,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
+  fprintf(fp, "%s,%s,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
           program_name,     matrix_file,        M,                        N,
           nthreads,         chunk_size, 
           time_csr_serial,  mflops_csr_serial,  max_abs_diff_csr_serial,  max_rel_diff_csr_serial,
