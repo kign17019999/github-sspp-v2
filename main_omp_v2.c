@@ -5,6 +5,7 @@
 #include "read_ellpack_2d.h"  // For import matrix into ELLPACK format store in 2D array.
 #include "wtime.h"  // For timing the procress
 #include <omp.h>  // For OpenMP programming
+#include <math.h> // For abs and max
 
 const int ntimes = 5;
 int nthreads=16;
