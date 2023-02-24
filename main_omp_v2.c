@@ -229,7 +229,7 @@ int main(int argc, char** argv)
   double time_ell_2dt_omp = (t2-t1)/ntimes;
   double mflops_ell_2dt_omp = (2.0e-6)*matrix_ellpack.NNZ/time_ell_2dt_omp;
   double max_abs_diff_ell_2dt_omp, max_rel_diff_ell_2dt_omp;
-  check_result(matrix_csr.M, y_s_c, y_c_e2d, &max_abs_diff_ell_2dt_omp, &max_rel_diff_ell_2dt_omp); // calculate a difference of result
+  check_result(matrix_csr.M, y_s_c, y_o_e2dt, &max_abs_diff_ell_2dt_omp, &max_rel_diff_ell_2dt_omp); // calculate a difference of result
 
 #pragma omp parallel 
 {
