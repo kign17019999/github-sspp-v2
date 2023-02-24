@@ -28,7 +28,7 @@ __global__ void gpuMatrixVectorCSR(const int XBD, const int YBD, int M, int N, c
 __global__ void gpuMatrixVectorELL(const int XBD, const int YBD, int M, int N, int NNZ, int MAXNZ,
  const int* JA, const double* AZ, const double* x, double* y);
 __global__ void gpuMatrixVectorELL_2d(const int XBD, const int YBD, int M, int N, int NNZ, int MAXNZ,
- const int* JA, const double* AZ, const double* x, double* y, size_t pitch_JA, size_t pitch_AZ);
+ const int** JA, const double** AZ, const double* x, double* y, size_t pitch_JA, size_t pitch_AZ);
 __global__ void gpuMatrixVectorELL_2dt(const int XBD, const int YBD, int M, int N, int NNZ, int MAXNZ,
  const int** JAt, const double** AZt, const double* x, double* y, size_t pitch_JA, size_t pitch_AZ);
 
@@ -140,8 +140,8 @@ int main(int argc, char** argv)
 
   checkCudaErrors(cudaMemcpy(d_x, x, matrix_csr.N * sizeof(double), cudaMemcpyHostToDevice));
 
-  int *d_ell_JA_2d, **d_ell_JA_2dt;  // 2D ell
-  double *d_ell_AZ_2d, **d_ell_AZ_2dt; // 2D ell
+  int **d_ell_JA_2d, **d_ell_JA_2dt;  // 2D ell
+  double **d_ell_AZ_2d, **d_ell_AZ_2dt; // 2D ell
   size_t pitch_JA_2d, pitch_AZ_2d, pitch_JA_2dt, pitch_AZ_2dt; // pitch
 
   checkCudaErrors(cudaMallocPitch((void**)&d_ell_JA_2d, &pitch_JA_2d, matrix_ellpack.MAXNZ * sizeof(int), matrix_csr.M));
@@ -149,8 +149,8 @@ int main(int argc, char** argv)
   checkCudaErrors(cudaMallocPitch((void**)&d_ell_JA_2dt, &pitch_JA_2dt, matrix_csr.M * sizeof(int), matrix_ellpack.MAXNZ));
   checkCudaErrors(cudaMallocPitch((void**)&d_ell_AZ_2dt, &pitch_AZ_2dt, matrix_csr.M * sizeof(double), matrix_ellpack.MAXNZ));
 
-  checkCudaErrors(cudaMemcpy2D(d_ell_JA_2d,  pitch_JA_2d,  matrix_ellpack.JA, matrix_ellpack.MAXNZ * sizeof(int),    matrix_ellpack.MAXNZ * sizeof(int),    matrix_csr.M,         cudaMemcpyHostToDevice));
-  checkCudaErrors(cudaMemcpy2D(d_ell_AZ_2d,  pitch_AZ_2d,  matrix_ellpack.AZ, matrix_ellpack.MAXNZ * sizeof(double), matrix_ellpack.MAXNZ * sizeof(double), matrix_csr.M,         cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy2D(d_ell_JA_2d,  pitch_JA_2d,  matrix_ellpack_2d.JA, matrix_ellpack.MAXNZ * sizeof(int),    matrix_ellpack.MAXNZ * sizeof(int),    matrix_csr.M,         cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy2D(d_ell_AZ_2d,  pitch_AZ_2d,  matrix_ellpack_2d.AZ, matrix_ellpack.MAXNZ * sizeof(double), matrix_ellpack.MAXNZ * sizeof(double), matrix_csr.M,         cudaMemcpyHostToDevice));
   checkCudaErrors(cudaMemcpy2D(d_ell_JA_2dt, pitch_JA_2dt, JAt,                  matrix_csr.M         * sizeof(int),    matrix_csr.M         * sizeof(int),    matrix_ellpack.MAXNZ, cudaMemcpyHostToDevice));
   checkCudaErrors(cudaMemcpy2D(d_ell_AZ_2dt, pitch_AZ_2dt, AZt,                  matrix_csr.M         * sizeof(double), matrix_csr.M         * sizeof(double), matrix_ellpack.MAXNZ, cudaMemcpyHostToDevice));
 
@@ -461,7 +461,7 @@ __global__ void gpuMatrixVectorELL(const int XBD, const int YBD, int M, int N, i
 
 // GPU implementation of matrix_vector product in ELLPACK format // 2D //
 __global__ void gpuMatrixVectorELL_2d(const int XBD, const int YBD, int M, int N, int NNZ, int MAXNZ,
- const int* JA, const double* AZ, const double* x, double* y, size_t pitch_JA, size_t pitch_AZ)
+ const int** JA, const double** AZ, const double* x, double* y, size_t pitch_JA, size_t pitch_AZ)
 {
   int row = blockIdx.x*blockDim.y + threadIdx.y;
   int tid_c = threadIdx.x;
