@@ -18,7 +18,7 @@
 ## The select line below selects 1 chunk of 4 cpus 
 ## Make sure to match ncpus to the number of threads 
 ##
-#PBS -l select=1:ncpus=16:mpiprocs=16
+#PBS -l select=1:ncpus=8:mpiprocs=1
 ##
 ## STEP 3:
 ##
@@ -63,8 +63,6 @@ export cpus=`cat $PBS_NODEFILE | wc -l`
 ##
 ## STEP 5: 
 ## Run the application
-
-./main_omp_v2 matrices/PR02R.mtx 16 128 new_csv_omp.csv
-./main_omp_v2 matrices/cant.mtx 16 128 new_csv_omp.csv
+./omp matrices/cant.mtx 16 128
 
 /bin/rm -f ./$PBS_JOBID

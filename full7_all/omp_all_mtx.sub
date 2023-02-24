@@ -18,7 +18,7 @@
 ## The select line below selects 1 chunk of 4 cpus 
 ## Make sure to match ncpus to the number of threads 
 ##
-#PBS -l select=1:ncpus=16:mpiprocs=16
+#PBS -l select=1:ncpus=8:mpiprocs=1
 ##
 ## STEP 3:
 ##
@@ -64,7 +64,10 @@ export cpus=`cat $PBS_NODEFILE | wc -l`
 ## STEP 5: 
 ## Run the application
 
-./main_omp_v2 matrices/PR02R.mtx 16 128 new_csv_omp.csv
-./main_omp_v2 matrices/cant.mtx 16 128 new_csv_omp.csv
+datasets=(cage4 Cube_Coup_dt0 FEM_3D_thermal1 mhda416 ML_Laplace thermal1 mcfe bcsstk17 thermal2 olm1000 mac_econ_fwd500 thermomech_TK adder_dcop_32 mhd4800a nlpkkt80 west2021 cop20k_A webbase-1M cavity10 raefsky2 dc1 rdist2 af23560 amazon0302 cant lung2 af_1_k101 olafu PR02R roadNet-PA)
+
+for dataset in "${datasets[@]}"; do
+    ./omp "matrices/${dataset}.mtx" 32 512
+done
 
 /bin/rm -f ./$PBS_JOBID

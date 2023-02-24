@@ -32,7 +32,7 @@
 ## five_day	- 120 hours
 ## ten_day	- 240 hours (by special arrangement)
 ##
-#PBS -q half_hour
+#PBS -q half_day
 ##
 ## STEP 4:
 ##
@@ -63,8 +63,14 @@ export cpus=`cat $PBS_NODEFILE | wc -l`
 ##
 ## STEP 5: 
 ## Run the application
+datasets=(cage4 Cube_Coup_dt0 FEM_3D_thermal1 mhda416 ML_Laplace thermal1 mcfe bcsstk17 thermal2 olm1000 mac_econ_fwd500 thermomech_TK adder_dcop_32 mhd4800a nlpkkt80 west2021 cop20k_A webbase-1M cavity10 raefsky2 dc1 rdist2 af23560 amazon0302 cant lung2 af_1_k101 olafu PR02R roadNet-PA)
 
-./main_omp_v2 matrices/PR02R.mtx 16 128 new_csv_omp.csv
-./main_omp_v2 matrices/cant.mtx 16 128 new_csv_omp.csv
+for BS in 1 500 1000
+do
+    for dataset in "${datasets[@]}";
+    do     
+        ./omp2 "matrices/${dataset}.mtx" 16 $BS
+    done
+done
 
 /bin/rm -f ./$PBS_JOBID

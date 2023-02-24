@@ -1,0 +1,112 @@
+#!/bin/bash
+##
+## GPU submission script for PBS on CRESCENT
+## -----------------------------------------
+##
+## Follow the 5 steps below to configure. If you edit this from Windows,
+## *before* submitting via "qsub" run "dos2unix" on this file - or you will
+## get strange errors. You have been warned.
+## 
+## STEP 1:
+## The following line contains the job name:
+##
+#PBS -N cudatest
+##
+## STEP 2:
+##
+##
+#PBS -l select=1:ncpus=1:mpiprocs=1:ngpus=1
+##
+## STEP 3:
+##
+## Select correct queue:
+##
+## for this class we have a special queue
+##
+#PBS -q gpu
+##PBS -l walltime=1:00:00
+##
+## STEP 4:
+##
+## Put YOUR email address in the next line:
+##
+#PBS -M purin.tanirat.240@cranfield.ac.uk
+##
+##
+##
+## DO NOT CHANGE the following lines
+##------------------------------------------------
+#PBS -j oe
+#PBS -v "CUDA_VISIBLE_DEVICES="
+#PBS -W sandbox=PRIVATE
+#PBS -V
+#PBS -m abe 
+#PBS -k n
+##
+## Change to working directory
+ln -s $PWD $PBS_O_WORKDIR/$PBS_JOBID
+cd $PBS_O_WORKDIR
+## Allocated gpu(s)
+echo CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES
+##
+## Calculate number of CPUs
+cpus=`cat $PBS_NODEFILE | wc -l`
+gpus=`echo $CUDA_VISIBLE_DEVICES|awk -F"," '{print NF}'`
+##
+##
+##-------------------------------------------------
+##
+## STEP 5: 
+## 
+## Put correct parameters in mpirun execution line
+## below:
+##
+
+######## CUDA ############
+
+#./main_cuda_1thread matrices/cant.mtx
+#./main_cuda_block_1d matrices/cant.mtx
+./main_cuda_block_2d matrices/cant.mtx
+
+for BD in 8 16 32 64 128 256 512
+do
+./main_cuda_block_2d matrices/cant.mtx $BD $BD
+done
+
+for XBD in 8 16 32 64 128 256 512
+do
+    for YBD in 8 16 32 64 128 256 512
+    do
+        PRODUCT=$((XBD * YBD * 8))
+        if [ $PRODUCT -lt 8192 ]; then
+            ./main_cuda_block_2d matrices/cant.mtx $XBD $YBD
+        fi
+    done
+done
+
+
+for XBD in 8 16 32 64 128 256 512
+do
+    for YBD in 8 16 32 64 128 256 512
+    do
+        ./main_cuda_block_2d matrices/cant.mtx $XBD $YBD
+    done
+done
+
+######## OpenMP ############
+
+for exe in matrix_vector_serial  #matrix_vector_parallel
+do
+    echo "Runs with executable: $exe"
+    for size in 10 20 30 31 32 33 34 35 36  40 50 60 70 80 90 100 128 200 256 500 512 1000 1024 2048 4096 5000
+    do 
+	for t in 1 2  4 8 
+	do    
+	    export OMP_NUM_THREADS=$t
+	    ./$exe    $size $size
+	done
+    done
+done
+
+
+/bin/rm -f $PBS_JOBID
