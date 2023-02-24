@@ -6,6 +6,7 @@
 #include "wtime.h"  // For timing the procress
 #include <omp.h>  // For OpenMP programming
 #include <math.h> // For abs and max
+#include <string.h>
 
 char* default_filename = "result_omp.csv";
 const int ntimes = 5;

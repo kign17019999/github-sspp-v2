@@ -6,6 +6,7 @@
 #include <helper_cuda.h>  // For checkCudaError macro
 #include <helper_timer.h>  // For CUDA SDK timers
 #include <math.h> // For abs and max
+#include <string.h>
 
 char* default_filename = "result_gpu.csv";
 const int ntimes = 5;
