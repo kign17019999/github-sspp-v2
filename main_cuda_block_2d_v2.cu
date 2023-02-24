@@ -94,7 +94,7 @@ int main(int argc, char** argv)
   for (int j = 0; j < matrix_ellpack.MAXNZ; j++) {
       for (int i = 0; i < matrix_ellpack.M; i++) {
           int JA_index = j*matrix_ellpack.M + i;
-          if (j < matrix_ellpack.NZ[i]) {
+          if (j < matrix_ellpack.NNZ[i]) {
               JAt[index] = matrix_ellpack.JA[JA_index];
               AZt[index] = matrix_ellpack.AZ[JA_index];
               index++;
