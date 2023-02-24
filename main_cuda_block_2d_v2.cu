@@ -143,10 +143,10 @@ int main(int argc, char** argv)
   checkCudaErrors(cudaMemcpy(d_csr_AZ, matrix_csr.AZ, matrix_csr.NNZ * sizeof(double), cudaMemcpyHostToDevice));
   checkCudaErrors(cudaMemcpy(d_ell_JA, matrix_ellpack.JA, matrix_csr.M * matrix_ellpack.MAXNZ * sizeof(int), cudaMemcpyHostToDevice));
   checkCudaErrors(cudaMemcpy(d_ell_AZ, matrix_ellpack.AZ, matrix_csr.M * matrix_ellpack.MAXNZ * sizeof(double), cudaMemcpyHostToDevice));
-  checkCudaErrors(cudaMemcpy2D(d_ell_JA_2d, pitch_JA_2d, matrix_ellpack_2d.JA, matrix_ellpack.MAXNZ * sizeof(int), matrix_ellpack.MAXNZ * sizeof(int), matrix_csr.M, cudaMemcpyHostToDevice));
-  checkCudaErrors(cudaMemcpy2D(d_ell_AZ_2d, pitch_AZ_2d, matrix_ellpack_2d.AZ, matrix_ellpack.MAXNZ * sizeof(double), matrix_ellpack.MAXNZ * sizeof(double), matrix_csr.M, cudaMemcpyHostToDevice));
-  checkCudaErrors(cudaMemcpy2D(d_ell_JA_2dt, pitch_JA_2dt, JAt, matrix_csr.M * sizeof(int), matrix_ellpack.MAXNZ * sizeof(int), matrix_csr.M, cudaMemcpyHostToDevice));
-  checkCudaErrors(cudaMemcpy2D(d_ell_AZ_2dt, pitch_AZ_2dt, AZt, matrix_csr.M * sizeof(double), matrix_ellpack.MAXNZ * sizeof(double), matrix_csr.M, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy2D(d_ell_JA_2d,  pitch_JA_2d,  matrix_ellpack_2d.JA, matrix_ellpack.MAXNZ * sizeof(int),    matrix_ellpack.MAXNZ * sizeof(int),    matrix_csr.M,         cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy2D(d_ell_AZ_2d,  pitch_AZ_2d,  matrix_ellpack_2d.AZ, matrix_ellpack.MAXNZ * sizeof(double), matrix_ellpack.MAXNZ * sizeof(double), matrix_csr.M,         cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy2D(d_ell_JA_2dt, pitch_JA_2dt, JAt,                  matrix_csr.M         * sizeof(int),    matrix_csr.M         * sizeof(int),    matrix_ellpack.MAXNZ, cudaMemcpyHostToDevice));
+  checkCudaErrors(cudaMemcpy2D(d_ell_AZ_2dt, pitch_AZ_2dt, AZt,                  matrix_csr.M         * sizeof(double), matrix_csr.M         * sizeof(double), matrix_ellpack.MAXNZ, cudaMemcpyHostToDevice));
 
   checkCudaErrors(cudaMemcpy(d_x, x, matrix_csr.N * sizeof(double), cudaMemcpyHostToDevice));
 
