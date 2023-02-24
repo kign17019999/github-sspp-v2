@@ -202,7 +202,7 @@ int main(int argc, char** argv)
   double time_csr_gpu = timer->getTime()/1000/ntimes; // timing
   double mflops_csr_gpu = (2.0e-6)*matrix_csr.NNZ/time_csr_gpu; // mflops
   double max_abs_diff_csr_gpu, max_rel_diff_csr_gpu;
-  check_result(matrix_csr.M, y_s_c, y_c_c, &max_abs_diff_ell_serial, &max_rel_diff_ell_serial); // calculate a difference of result
+  check_result(matrix_csr.M, y_s_c, y_c_c, &max_abs_diff_csr_gpu, &max_rel_diff_csr_gpu); // calculate a difference of result
 
   fprintf(stdout," [GPU CSR] Grid dim = %d %d , Block dim = %d %d time %lf  MFLOPS %lf max_abs_diff %lf max_rel_diff %lf\n",
 	  GRID_DIM_CSR.x, GRID_DIM_CSR.y, BLOCK_DIM.x, BLOCK_DIM.y, time_csr_gpu,mflops_csr_gpu, max_abs_diff_csr_gpu, max_rel_diff_csr_gpu);
@@ -226,7 +226,7 @@ int main(int argc, char** argv)
   double time_ell_1d_gpu = timer->getTime()/1000/ntimes; // timing
   double mflops_ell_1d_gpu = (2.0e-6)*matrix_csr.NNZ/time_ell_1d_gpu; // mflops
   double max_abs_diff_ell_1d_gpu, max_rel_diff_ell_1d_gpu;
-  check_result(matrix_csr.M, y_s_c, y_c_e1d, &max_abs_diff_ell_serial, &max_rel_diff_ell_serial); // calculate a difference of result
+  check_result(matrix_csr.M, y_s_c, y_c_e1d, &max_abs_diff_ell_1d_gpu, &max_rel_diff_ell_1d_gpu); // calculate a difference of result
 
   fprintf(stdout," [GPU ELL 1D] Grid dim = %d %d , Block dim = %d %d time %lf  MFLOPS %lf max_abs_diff %lf max_rel_diff %lf\n",
 	  GRID_DIM_ELL.x, GRID_DIM_ELL.y, BLOCK_DIM.x, BLOCK_DIM.y, time_ell_1d_gpu,mflops_ell_1d_gpu, max_abs_diff_ell_1d_gpu, max_rel_diff_ell_1d_gpu);
@@ -248,7 +248,7 @@ int main(int argc, char** argv)
   double time_ell_2d_gpu = timer->getTime()/1000/ntimes; // timing
   double mflops_ell_2d_gpu = (2.0e-6)*matrix_csr.NNZ/time_ell_2d_gpu; // mflops
   double max_abs_diff_ell_2d_gpu, max_rel_diff_ell_2d_gpu;
-  check_result(matrix_csr.M, y_s_c, y_c_e2d, &max_abs_diff_ell_serial, &max_rel_diff_ell_serial); // calculate a difference of result
+  check_result(matrix_csr.M, y_s_c, y_c_e2d, &max_abs_diff_ell_2d_gpu, &max_rel_diff_ell_2d_gpu); // calculate a difference of result
 
   fprintf(stdout," [GPU ELL 2D] Grid dim = %d %d , Block dim = %d %d time %lf  MFLOPS %lf max_abs_diff %lf max_rel_diff %lf\n",
 	  GRID_DIM_ELL.x, GRID_DIM_ELL.y, BLOCK_DIM.x, BLOCK_DIM.y, time_ell_2d_gpu,mflops_ell_2d_gpu, max_abs_diff_ell_2d_gpu, max_rel_diff_ell_2d_gpu);
@@ -270,7 +270,7 @@ int main(int argc, char** argv)
   double time_ell_2dt_gpu = timer->getTime()/1000/ntimes; // timing
   double mflops_ell_2dt_gpu = (2.0e-6)*matrix_csr.NNZ/time_ell_2dt_gpu; // mflops
   double max_abs_diff_ell_2dt_gpu, max_rel_diff_ell_2dt_gpu;
-  check_result(matrix_csr.M, y_s_c, y_c_e2d, &max_abs_diff_ell_serial, &max_rel_diff_ell_serial); // calculate a difference of result
+  check_result(matrix_csr.M, y_s_c, y_c_e2d, &max_abs_diff_ell_2dt_gpu, &max_rel_diff_ell_2dt_gpu); // calculate a difference of result
 
   fprintf(stdout," [GPU ELL 2DT] Grid dim = %d %d , Block dim = %d %d time %lf  MFLOPS %lf max_abs_diff %lf max_rel_diff %lf\n",
 	  GRID_DIM_ELL.x, GRID_DIM_ELL.y, BLOCK_DIM.x, BLOCK_DIM.y, time_ell_2dt_gpu,mflops_ell_2dt_gpu, max_abs_diff_ell_2dt_gpu, max_rel_diff_ell_2dt_gpu);
