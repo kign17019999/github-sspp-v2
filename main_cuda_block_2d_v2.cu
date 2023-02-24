@@ -243,7 +243,7 @@ int main(int argc, char** argv)
   timer->start();
   for(int tryloop=0; tryloop<ntimes; tryloop++){
     gpuMatrixVectorELL_2d<<<GRID_DIM_ELL, BLOCK_DIM, XBD*YBD*sizeof(double)>>>(BLOCK_DIM.x, BLOCK_DIM.y,
-     matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, const_cast<const int**>(d_ell_JA_2d), const_cast<const double**>(d_ell_AZ_2d), d_x, d_y, pitch_JA_2d, pitch_AZ_2d);
+     matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ, const_cast<const int*>(d_ell_JA_2d), const_cast<const double*>(d_ell_AZ_2d), d_x, d_y, pitch_JA_2d, pitch_AZ_2d);
     checkCudaErrors(cudaDeviceSynchronize());
   }
   timer->stop();
