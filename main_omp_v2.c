@@ -7,6 +7,7 @@
 #include <omp.h>  // For OpenMP programming
 #include <math.h> // For abs and max
 
+char* default_filename = "result_omp.csv";
 const int ntimes = 5;
 int nthreads=16;
 int chunk_size=256;
@@ -49,8 +50,13 @@ int main(int argc, char** argv)
     matrix_file = argv[1];
     nthreads = atoi(argv[2]);
     chunk_size = atoi(argv[3]);
+  } else if (argc == 5) {
+    matrix_file = argv[1];
+    nthreads = atoi(argv[2]);
+    chunk_size = atoi(argv[3]);
+    default_filename = argv[4];
   } else {
-    printf("Usage: %s matrixFile.mtx [nthreads] [chunk_size]\n", program_name);
+    printf("Usage: %s matrixFile.mtx [nthreads] [chunk_size] [CSV_saving_file_name]\n", program_name);
     return -1;
   }
   printf("---------------------------------------------------------------------\n");
@@ -411,7 +417,8 @@ void save_result_omp( char *program_name,      char* matrix_file,          int M
 {
   // open file for appending or create new file with header
   FILE *fp;
-  char filename[] = "result_omp_test3.csv";  //file name
+  char filename[100];
+  strcpy(filename, default_filename);
   fp = fopen(filename, "a+");
   if (fp == NULL) {
     printf("Error opening file.\n");

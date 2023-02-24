@@ -7,6 +7,7 @@
 #include <helper_timer.h>  // For CUDA SDK timers
 #include <math.h> // For abs and max
 
+char* default_filename = "result_gpu.csv";
 const int ntimes = 5;
 
 void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
@@ -45,6 +46,11 @@ int main(int argc, char** argv)
     matrix_file = argv[1];
     XBD = atoi(argv[2]);
     YBD = atoi(argv[3]);
+  } else if (argc == 5) {
+    matrix_file = argv[1];
+    XBD = atoi(argv[2]);
+    YBD = atoi(argv[3]);
+    default_filename = argv[4];
   } else {
     printf(" Usage: %s matrixFile.mtx [XBD] [YBD] \n", argv[0]);
     return -1;
@@ -559,7 +565,8 @@ void save_result_cuda(char *program_name,      char* matrix_file,          int M
 {
   // open file for appending or create new file with header
   FILE *fp;
-  char filename[] = "result_gpu_test3.csv";  //file name
+  char filename[100];
+  strcpy(filename, default_filename);
   fp = fopen(filename, "a+");
   if (fp == NULL) {
     printf("Error opening file.\n");
