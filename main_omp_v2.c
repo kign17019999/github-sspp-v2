@@ -147,7 +147,7 @@ int main(int argc, char** argv)
   double max_abs_diff_ell_serial, max_rel_diff_ell_serial;
   check_result(matrix_csr.M, y_s_c, y_s_e, &max_abs_diff_ell_serial, &max_rel_diff_ell_serial); // calculate a difference of result
 
-  fprintf(stdout," [ELL 1Td] with 1 thread: time %lf  MFLOPS %lf max_abs_diff %lf max_rel_diff %lf\\n",
+  fprintf(stdout," [ELL 1Td] with 1 thread: time %lf  MFLOPS %lf max_abs_diff %lf max_rel_diff %lf\n",
 	  time_ell_serial,mflops_ell_serial, max_abs_diff_ell_serial, max_rel_diff_ell_serial);
 
   // ======================= Parallel Calculations with OpenMP ======================= //
@@ -169,7 +169,7 @@ int main(int argc, char** argv)
 {
 #pragma omp master
 {
-  fprintf(stdout," [CSR OMP] with %d thread chunk_size %d: time %lf  MFLOPS %lf max_abs_diff %lf max_rel_diff %lf\\n",
+  fprintf(stdout," [CSR OMP] with %d thread chunk_size %d: time %lf  MFLOPS %lf max_abs_diff %lf max_rel_diff %lf\n",
 	  omp_get_num_threads(), chunk_size, time_csr_omp, mflops_csr_omp, max_abs_diff_csr_omp, max_rel_diff_csr_omp);
 }
 }
@@ -191,7 +191,7 @@ int main(int argc, char** argv)
 {
 #pragma omp master
 {
-  fprintf(stdout," [ELL 1D OMP] with %d thread chunk_size %d: time %lf  MFLOPS %lf max_abs_diff %lf max_rel_diff %lf\\n",
+  fprintf(stdout," [ELL 1D OMP] with %d thread chunk_size %d: time %lf  MFLOPS %lf max_abs_diff %lf max_rel_diff %lf\n",
 	  omp_get_num_threads(), chunk_size, time_ell_1d_omp, mflops_ell_1d_omp, max_abs_diff_ell_1d_omp, max_rel_diff_ell_1d_omp);
 }
 }
@@ -213,7 +213,7 @@ int main(int argc, char** argv)
 {
 #pragma omp master
 {
-  fprintf(stdout," [ELL 2D OMP] with %d thread chunk_size %d: time %lf  MFLOPS %lf max_abs_diff %lf max_rel_diff %lf\\n",
+  fprintf(stdout," [ELL 2D OMP] with %d thread chunk_size %d: time %lf  MFLOPS %lf max_abs_diff %lf max_rel_diff %lf\n",
 	  omp_get_num_threads(), chunk_size, time_ell_2d_omp, mflops_ell_2d_omp, max_abs_diff_ell_2d_omp, max_rel_diff_ell_2d_omp);
 }
 }
@@ -235,7 +235,7 @@ int main(int argc, char** argv)
 {
 #pragma omp master
 {
-  fprintf(stdout," [ELL 2DT OMP] with %d thread chunk_size %d: time %lf  MFLOPS %lf max_abs_diff %lf max_rel_diff %lf\\n",
+  fprintf(stdout," [ELL 2DT OMP] with %d thread chunk_size %d: time %lf  MFLOPS %lf max_abs_diff %lf max_rel_diff %lf\n",
 	  omp_get_num_threads(), chunk_size, time_ell_2dt_omp, mflops_ell_2dt_omp, max_abs_diff_ell_2dt_omp, max_rel_diff_ell_2dt_omp);
 }
 }
