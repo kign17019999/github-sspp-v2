@@ -475,10 +475,10 @@ __global__ void gpuMatrixVectorELL_2d(const int XBD, const int YBD, int M, int N
     double t = 0.0;
     for (int col = tid_c; col < MAXNZ; col += num_threads_per_row) {
       // Compute the address of the (row, col) element in the JA and AZ arrays
-      int* row_JA = (int*)((char*)JA + row * pitch_JA);
-      double* row_AZ = (double*)((char*)AZ + row * pitch_AZ);
+      int* row_JA = (int*)((char*)JA + col * sizeof(int));
+      double* row_AZ = (double*)((char*)AZ + col * sizeof(double));
 
-      t += row_AZ[col] * x[row_JA[col]];
+      t += (*row_AZ) * x[*row_JA];
     }
     // Starting address of indexing 1d shared memory for 2d data
     int sindex = tid_r*XBD+tid_c;
@@ -523,10 +523,10 @@ __global__ void gpuMatrixVectorELL_2dt(const int XBD, const int YBD, int M, int 
     double t = 0.0;
     for (int col = tid_c; col < MAXNZ; col += num_threads_per_row) {
       // Compute the address of the (col, row) element in the JAt and AZt arrays
-      int* row_JAt = (int*)((char*)JAt + col * pitch_JA);
-      double* row_AZt = (double*)((char*)AZt + col * pitch_AZ);
+      int* row_JAt = (int*)((char*)JAt[col] + row * sizeof(int));
+      double* row_AZt = (double*)((char*)AZt[col] + row * sizeof(double));
 
-      t += row_AZt[row] * x[row_JAt[row]];
+      t += (*row_AZt) * x[*row_JAt];
     }
     // Starting address of indexing 1d shared memory for 2d data
     int sindex = tid_r*XBD+tid_c;

@@ -112,7 +112,7 @@ int main(int argc, char** argv)
   double* y_o_e2dt = (double*) malloc(sizeof(double)*matrix_csr.M); // result of omp ellpack 2d transpose
   
   // random vector element's values
-  for (int row = 0; row < matrix_csr.M; ++row) {
+  for (int row = 0; row < matrix_csr.N; ++row) {
     x[row] = 100.0f * ((double) rand()) / RAND_MAX;      
   }
   double t1, t2;

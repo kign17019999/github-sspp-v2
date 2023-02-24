@@ -73,7 +73,7 @@ int main(int argc, char** argv)
   double* x = (double*) malloc(sizeof(double)*matrix_csr.N);
   double* y = (double*) malloc(sizeof(double)*matrix_csr.M);
   double* y0 = (double*) malloc(sizeof(double)*matrix_csr.M); //as a reference of result
-  for (int row = 0; row < matrix_csr.M; ++row) {
+  for (int row = 0; row < matrix_csr.N; ++row) {
     x[row] = 100.0f * ((double) rand()) / RAND_MAX;      
   }
   fprintf(stdout," Matrix-Vector product of %s of size %d x %d\n", matrix_file, matrix_csr.M, matrix_csr.N);
