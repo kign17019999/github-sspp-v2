@@ -13,7 +13,7 @@ void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* y);
 void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ, const double* x, double* y);
-double check_result(int M, double* y_s_c, double* y);
+void check_result(int M, double* y_s_c, double* y, double* max_abs_diff, double* max_rel_diff);
 void save_result_cuda(char *program_name, char* matrix_file,          int M, int N,
                  int cudaXBD,             int cudaYBD,                int cudaXGD, int cudaYGD,
                  double time_csr_serial,  double mflops_csr_serial,   double max_diff_csr_serial,
