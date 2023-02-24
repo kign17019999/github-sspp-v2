@@ -14,12 +14,14 @@ void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
 void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ, const double* x, double* y);
 double check_result(int M, double* y_s_c, double* y);
-void save_result_cuda(char *program_name, char* matrix_file, int M, int N,
-                 int cudaXBD, int cudaYBD, int cudaXGD, int cudaYGD,
-                 double time_csr_serial, double mflops_csr_serial, double max_diff_csr_serial,
-                 double time_ell_serial, double mflops_ell_serial, double max_diff_ell_serial,
-                 double time_csr_gpu, double mflops_csr_gpu, double max_diff_csr_gpu,
-                 double time_ell_gpu, double mflops_ell_gpu, double max_diff_ell_gpu);
+void save_result_cuda(char *program_name, char* matrix_file,          int M, int N,
+                 int cudaXBD,             int cudaYBD,                int cudaXGD, int cudaYGD,
+                 double time_csr_serial,  double mflops_csr_serial,   double max_diff_csr_serial,
+                 double time_ell_serial,  double mflops_ell_serial,   double max_diff_ell_serial,
+                 double time_csr_gpu,     double mflops_csr_gpu,      double max_diff_csr_gpu,
+                 double time_ell_1d_gpu,  double mflops_ell_1d_gpu,   double max_diff_ell_1d_gpu,
+                 double time_ell_2d_gpu,  double mflops_ell_2d_gpu,   double max_diff_ell_2d_gpu,
+                 double time_ell_2dt_gpu, double mflops_ell_2dt_gpu,  double max_diff_ell_2dt_gpu);
 
 __global__ void gpuMatrixVectorCSR(const int XBD, const int YBD, int M, int N, const int* IRP,
  const int* JA, const double* AZ, const double* x, double* y);
@@ -203,7 +205,7 @@ int main(int argc, char** argv)
   
   double time_csr_gpu = timer->getTime()/1000/ntimes; // timing
   double mflops_csr_gpu = (2.0e-6)*matrix_csr.NNZ/time_csr_gpu; // mflops
-  double max_diff_csr_gpu = check_result(matrix_csr.M, y_s_c, y_c_C);  // calculate a difference of result
+  double max_diff_csr_gpu = check_result(matrix_csr.M, y_s_c, y_c_c);  // calculate a difference of result
 
   fprintf(stdout," [GPU CSR] Grid dim = %d %d , Block dim = %d %d time %lf  MFLOPS %lf max_diff %lf\n",
 	  GRID_DIM_CSR.x, GRID_DIM_CSR.y, BLOCK_DIM.x, BLOCK_DIM.y, time_csr_gpu,mflops_csr_gpu, max_diff_csr_gpu);
