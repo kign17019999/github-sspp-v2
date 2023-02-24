@@ -2,6 +2,7 @@
 #include <stdio.h>  // Standard library
 #include "read_csr.h" // For import matrix into CSR format
 #include "read_ellpack.h"  // For import matrix into ELLPACK format store in 1D array.
+#include "read_ellpack_2d.h"  // For import matrix into ELLPACK format store in 2D array.
 #include <cuda_runtime.h>  // For CUDA runtime API
 #include <helper_cuda.h>  // For checkCudaError macro
 #include <helper_timer.h>  // For CUDA SDK timers
@@ -13,14 +14,14 @@ void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
 void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ, const double* x, double* y);
 void check_result(int M, double* y_s_c, double* y, double* max_abs_diff, double* max_rel_diff);
-void save_result_cuda(char *program_name,      char* matrix_file,          int M,                            int N,
-                      int cudaXBD,             int cudaYBD,                int cudaXGD,                      int cudaYGD,
-                      double time_csr_serial,  double mflops_csr_serial,   double max_abs_diff_csr_serial,   double max_rel_diff_csr_serial,
-                      double time_ell_serial,  double mflops_ell_serial,   double max_abs_diff_ell_serial,   double max_rel_diff_ell_serial,
-                      double time_csr_gpu,     double mflops_csr_gpu,      double max_abs_diff_csr_gpu,      double max_rel_diff_csr_gpu,
-                      double time_ell_1d_gpu,  double mflops_ell_1d_gpu,   double max_abs_diff_ell_1d_gpu,   double max_rel_diff_ell_1d_gpu,
-                      double time_ell_2d_gpu,  double mflops_ell_2d_gpu,   double max_abs_diff_ell_2d_gpu,   double max_rel_diff_ell_2d_gpu, 
-                      double time_ell_2dt_gpu, double mflops_ell_2dt_gpu,  double max_abs_diff_ell_2dt_gpu,  double max_rel_diff_ell_2dt_gpu);
+void save_result_cuda(char *program_name, char* matrix_file,          int M, int N,
+                 int cudaXBD,             int cudaYBD,                int cudaXGD, int cudaYGD,
+                 double time_csr_serial,  double mflops_csr_serial,   double max_diff_csr_serial,
+                 double time_ell_serial,  double mflops_ell_serial,   double max_abs_diff_ell_serial,
+                 double time_csr_gpu,     double mflops_csr_gpu,      double max_abs_diff_csr_gpu,
+                 double time_ell_1d_gpu,  double mflops_ell_1d_gpu,   double max_abs_diff_ell_1d_gpu,
+                 double time_ell_2d_gpu,  double mflops_ell_2d_gpu,   double max_abs_diff_ell_2d_gpu,
+                 double time_ell_2dt_gpu, double mflops_ell_2dt_gpu,  double max_abs_diff_ell_2dt_gpu);
 
 __global__ void gpuMatrixVectorCSR(const int XBD, const int YBD, int M, int N, const int* IRP,
  const int* JA, const double* AZ, const double* x, double* y);
@@ -55,7 +56,7 @@ int main(int argc, char** argv)
   StopWatchInterface* timer = 0;
   sdkCreateTimer(&timer);
 
-  // ======================= Import Matrix Data ======================= //
+  // ----------------------- Import Matrix Data ----------------------- //
 
   // Save matrix file into memory in CSR format.
   struct csr_matrix matrix_csr;
@@ -89,7 +90,7 @@ int main(int argc, char** argv)
 
   printf("finish loading matrix into 1D tranpose ELLPACK format\n");
 
-  // ======================= Host memory initialisation ======================= //
+  // ----------------------- Host memory initialisation ----------------------- //
   
   double* x = (double*) malloc(sizeof(double)*matrix_csr.N);
   double* y_s_c = (double*) malloc(sizeof(double)*matrix_csr.M); //as a reference of result
@@ -105,25 +106,19 @@ int main(int argc, char** argv)
   }
   fprintf(stdout," Matrix-Vector product of %s of size %d x %d\n", matrix_file, matrix_csr.M, matrix_csr.N);
 
-  // ======================= Device memory initialisation ======================= //
+  // ---------------------- Device memory initialisation ---------------------- //
 
   //  Allocate memory space on the device. 
   double *d_csr_AZ, *d_ell_AZ;  // matrix data
   int *d_csr_IRP, *d_csr_JA, *d_ell_JA; // matrix data 
-  int *d_ell_JA_2d, *d_ell_JA_2dt;  // 2D ell
-  double *d_ell_AZ_2d, *d_ell_AZ_2dt; // 2D ell
-  size_t pitch_JA_2d, pitch_AZ_2d, pitch_JA_2dt, pitch_AZ_2dt; // pitch for 2D ell
-  double *d_x, *d_y; // vector & result data
 
   checkCudaErrors(cudaMalloc((void**) &d_csr_IRP, (matrix_csr.M+1) * sizeof(int)));
   checkCudaErrors(cudaMalloc((void**) &d_csr_JA, matrix_csr.NNZ * sizeof(int)));
   checkCudaErrors(cudaMalloc((void**) &d_csr_AZ, matrix_csr.NNZ * sizeof(double)));
   checkCudaErrors(cudaMalloc((void**) &d_ell_JA, matrix_csr.M * matrix_ellpack.MAXNZ * sizeof(int)));
   checkCudaErrors(cudaMalloc((void**) &d_ell_AZ, matrix_csr.M * matrix_ellpack.MAXNZ * sizeof(double)));
-  checkCudaErrors(cudaMallocPitch((void**)&d_ell_JA_2d, &pitch_JA_2d, matrix_ellpack.MAXNZ * sizeof(int), matrix_csr.M));
-  checkCudaErrors(cudaMallocPitch((void**)&d_ell_AZ_2d, &pitch_AZ_2d, matrix_ellpack.MAXNZ * sizeof(double), matrix_csr.M));
-  checkCudaErrors(cudaMallocPitch((void**)&d_ell_JA_2dt, &pitch_JA_2dt, matrix_csr.M * sizeof(int), matrix_ellpack.MAXNZ));
-  checkCudaErrors(cudaMallocPitch((void**)&d_ell_AZ_2dt, &pitch_AZ_2dt, matrix_csr.M * sizeof(double), matrix_ellpack.MAXNZ));
+
+  double *d_x, *d_y; // vector & result data
   checkCudaErrors(cudaMalloc((void**) &d_x, (matrix_csr.N) * sizeof(double)));
   checkCudaErrors(cudaMalloc((void**) &d_y, (matrix_csr.M) * sizeof(double)));
 
@@ -133,15 +128,26 @@ int main(int argc, char** argv)
   checkCudaErrors(cudaMemcpy(d_csr_AZ, matrix_csr.AZ, matrix_csr.NNZ * sizeof(double), cudaMemcpyHostToDevice));
   checkCudaErrors(cudaMemcpy(d_ell_JA, matrix_ellpack.JA, matrix_csr.M * matrix_ellpack.MAXNZ * sizeof(int), cudaMemcpyHostToDevice));
   checkCudaErrors(cudaMemcpy(d_ell_AZ, matrix_ellpack.AZ, matrix_csr.M * matrix_ellpack.MAXNZ * sizeof(double), cudaMemcpyHostToDevice));
+
+  checkCudaErrors(cudaMemcpy(d_x, x, matrix_csr.N * sizeof(double), cudaMemcpyHostToDevice));
+
+  int *d_ell_JA_2d, *d_ell_JA_2dt;  // 2D ell
+  double *d_ell_AZ_2d, *d_ell_AZ_2dt; // 2D ell
+  size_t pitch_JA_2d, pitch_AZ_2d, pitch_JA_2dt, pitch_AZ_2dt; // pitch
+
+  checkCudaErrors(cudaMallocPitch((void**)&d_ell_JA_2d, &pitch_JA_2d, matrix_ellpack.MAXNZ * sizeof(int), matrix_csr.M));
+  checkCudaErrors(cudaMallocPitch((void**)&d_ell_AZ_2d, &pitch_AZ_2d, matrix_ellpack.MAXNZ * sizeof(double), matrix_csr.M));
+  checkCudaErrors(cudaMallocPitch((void**)&d_ell_JA_2dt, &pitch_JA_2dt, matrix_csr.M * sizeof(int), matrix_ellpack.MAXNZ));
+  checkCudaErrors(cudaMallocPitch((void**)&d_ell_AZ_2dt, &pitch_AZ_2dt, matrix_csr.M * sizeof(double), matrix_ellpack.MAXNZ));
+
   checkCudaErrors(cudaMemcpy2D(d_ell_JA_2d, pitch_JA_2d, matrix_ellpack.JA, matrix_ellpack.MAXNZ * sizeof(int), matrix_ellpack.MAXNZ * sizeof(int), matrix_csr.M, cudaMemcpyHostToDevice));
   checkCudaErrors(cudaMemcpy2D(d_ell_AZ_2d, pitch_AZ_2d, matrix_ellpack.AZ, matrix_ellpack.MAXNZ * sizeof(double), matrix_ellpack.MAXNZ * sizeof(double), matrix_csr.M, cudaMemcpyHostToDevice));
   checkCudaErrors(cudaMemcpy2D(d_ell_JA_2dt, pitch_JA_2dt, JAt, matrix_csr.M * sizeof(int), matrix_csr.M * sizeof(int), matrix_ellpack.MAXNZ, cudaMemcpyHostToDevice));
   checkCudaErrors(cudaMemcpy2D(d_ell_AZ_2dt, pitch_AZ_2dt, AZt, matrix_csr.M * sizeof(double), matrix_csr.M * sizeof(double), matrix_ellpack.MAXNZ, cudaMemcpyHostToDevice));
-  checkCudaErrors(cudaMemcpy(d_x, x, matrix_csr.N * sizeof(double), cudaMemcpyHostToDevice));
 
-  // ======================= Calculations on the CPU ======================= //
+  // ------------------------ Calculations on the CPU ------------------------- //
 
-  // ----------------------- perform serial code in CSR format ----------------------- //
+  // ---- perform serial code in CSR format ---- //
   timer->reset();
   timer->start();
   for(int tryloop=0; tryloop<ntimes; tryloop++){
@@ -155,7 +161,7 @@ int main(int argc, char** argv)
   fprintf(stdout," [CPU CSR] with 1 thread: time %lf  MFLOPS %lf \n",
 	  time_csr_serial,mflops_csr_serial);
 
-  // ----------------------- perform serial code in ELLPACK format ----------------------- //
+  // ---- perform serial code in ELLPACK format ---- //
   timer->reset();
   timer->start();
   for(int tryloop=0; tryloop<ntimes; tryloop++){
@@ -172,12 +178,12 @@ int main(int argc, char** argv)
   fprintf(stdout," [CPU ELL] with 1 thread: time %lf  MFLOPS %lf max_abs_diff %lf max_rel_diff %lf\n",
 	  time_ell_serial,mflops_ell_serial, max_abs_diff_ell_serial, max_rel_diff_ell_serial);
 
-  // ======================= Calculations on the GPU ======================= //
+  // ------------------------ Calculations on the GPU ------------------------- //
 
   // define a 2D block structure
   const dim3 BLOCK_DIM(XBD,YBD);
 
-  // ----------------------- perform parallel code in CSR format ----------------------- //
+  // ---- perform parallel code in CSR format ---- //
   // Calculate the dimension of the grid of blocks
   const dim3 GRID_DIM_CSR((matrix_csr.M-1+BLOCK_DIM.y)/BLOCK_DIM.y, 1);
 
@@ -201,7 +207,7 @@ int main(int argc, char** argv)
   fprintf(stdout," [GPU CSR] Grid dim = %d %d , Block dim = %d %d time %lf  MFLOPS %lf max_abs_diff %lf max_rel_diff %lf\n",
 	  GRID_DIM_CSR.x, GRID_DIM_CSR.y, BLOCK_DIM.x, BLOCK_DIM.y, time_csr_gpu,mflops_csr_gpu, max_abs_diff_csr_gpu, max_rel_diff_csr_gpu);
 
-  // ----------------------- perform parallel code in ELLPACK format ----------------------- // 1D //
+  // ---- perform parallel code in ELLPACK format ---- // 1D //
   // Calculate the dimension of the grid of blocks
   const dim3 GRID_DIM_ELL((matrix_csr.M-1+BLOCK_DIM.y)/BLOCK_DIM.y, 1);
 
@@ -225,7 +231,7 @@ int main(int argc, char** argv)
   fprintf(stdout," [GPU ELL 1D] Grid dim = %d %d , Block dim = %d %d time %lf  MFLOPS %lf max_abs_diff %lf max_rel_diff %lf\n",
 	  GRID_DIM_ELL.x, GRID_DIM_ELL.y, BLOCK_DIM.x, BLOCK_DIM.y, time_ell_1d_gpu,mflops_ell_1d_gpu, max_abs_diff_ell_1d_gpu, max_rel_diff_ell_1d_gpu);
 
-  // ----------------------- perform parallel code in ELLPACK format ----------------------- // 2D // * * *
+  // ---- perform parallel code in ELLPACK format ---- // 2D // * * *
 
   timer->reset();
   timer->start();
@@ -247,7 +253,7 @@ int main(int argc, char** argv)
   fprintf(stdout," [GPU ELL 2D] Grid dim = %d %d , Block dim = %d %d time %lf  MFLOPS %lf max_abs_diff %lf max_rel_diff %lf\n",
 	  GRID_DIM_ELL.x, GRID_DIM_ELL.y, BLOCK_DIM.x, BLOCK_DIM.y, time_ell_2d_gpu,mflops_ell_2d_gpu, max_abs_diff_ell_2d_gpu, max_rel_diff_ell_2d_gpu);
 
-  // ----------------------- perform parallel code in ELLPACK format ----------------------- // 2D Transpose // * * *
+  // ---- perform parallel code in ELLPACK format ---- // 2D Transpose // * * *
 
   timer->reset();
   timer->start();
@@ -270,18 +276,27 @@ int main(int argc, char** argv)
 	  GRID_DIM_ELL.x, GRID_DIM_ELL.y, BLOCK_DIM.x, BLOCK_DIM.y, time_ell_2dt_gpu,mflops_ell_2dt_gpu, max_abs_diff_ell_2dt_gpu, max_rel_diff_ell_2dt_gpu);
 
 
-  // ======================= save result into CSV file ======================= //
+  // ------------------------------- save result into CSV file ------------------------------ //
   
-  save_result_cuda( program_name,      matrix_file,        matrix_csr.M,             matrix_csr.N,
-                    GRID_DIM_ELL.x,    GRID_DIM_ELL.y,     GRID_DIM_CSR.x,           GRID_DIM_CSR.y,
-                    time_csr_serial,   mflops_csr_serial,  0,                        0,
-                    time_ell_serial,   mflops_ell_serial,  max_abs_diff_ell_serial,  max_rel_diff_ell_serial,
-                    time_csr_gpu,      mflops_csr_gpu,     max_abs_diff_csr_gpu,     max_rel_diff_csr_gpu,
-                    time_ell_1d_gpu,   mflops_ell_1d_gpu,  max_abs_diff_ell_1d_gpu,  max_rel_diff_ell_1d_gpu,
-                    time_ell_2d_gpu,   mflops_ell_2d_gpu,  max_abs_diff_ell_2d_gpu,  max_rel_diff_ell_2d_gpu,
-                    time_ell_2dt_gpu,  mflops_ell_2dt_gpu, max_abs_diff_ell_2dt_gpu, max_rel_diff_ell_2dt_gpu);
+  // save_result_cuda(program_name,    matrix_file,        matrix_csr.M,   matrix_csr.N,
+  //                GRID_DIM_ELL.x,    GRID_DIM_ELL.y,     GRID_DIM_CSR.x, GRID_DIM_CSR.y,
+  //                time_csr_serial,   mflops_csr_serial,  0, 0,
+  //                time_ell_serial,   mflops_ell_serial,  max_abs_diff_ell_serial,  max_rel_diff_ell_serial,
+  //                time_csr_gpu,      mflops_csr_gpu,     max_abs_diff_csr_gpu,     max_rel_diff_csr_gpu,
+  //                time_ell_1d_gpu,   mflops_ell_1d_gpu,  max_abs_diff_ell_1d_gpu,  max_rel_diff_ell_1d_gpu,
+  //                time_ell_2d_gpu,   mflops_ell_2d_gpu,  max_abs_diff_ell_2d_gpu,  max_rel_diff_ell_2d_gpu,
+  //                time_ell_2dt_gpu,  mflops_ell_2dt_gpu, max_abs_diff_ell_2dt_gpu, max_rel_diff_ell_2dt_gpu);
 
-  // =======================- Cleaning up ======================= //
+  save_result_cuda(program_name,    matrix_file,        matrix_csr.M,   matrix_csr.N,
+                 GRID_DIM_ELL.x,    GRID_DIM_ELL.y,     GRID_DIM_CSR.x, GRID_DIM_CSR.y,
+                 time_csr_serial,   mflops_csr_serial,  0,
+                 time_ell_serial,   mflops_ell_serial,  max_abs_diff_ell_serial,
+                 time_csr_gpu,      mflops_csr_gpu,     max_abs_diff_csr_gpu,
+                 time_ell_1d_gpu,   mflops_ell_1d_gpu,  max_abs_diff_ell_1d_gpu,
+                 time_ell_2d_gpu,   mflops_ell_2d_gpu,  max_abs_diff_ell_2d_gpu,
+                 time_ell_2dt_gpu,  mflops_ell_2dt_gpu, max_abs_diff_ell_2dt_gpu);
+
+  // ------------------------------- Cleaning up ------------------------------ //
 
   delete timer;
 
@@ -315,7 +330,7 @@ int main(int argc, char** argv)
   return 0;
 }
 
-// ******************** Simple CPU implementation of matrix_vector product multiplication in CSR format ******************** //
+// Simple CPU implementation of matrix_vector product multiplication in CSR format.
 void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
  const double* AZ, const double* x, double* y) 
 {
@@ -330,7 +345,7 @@ void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
   }
 }
 
-// ******************** Simple CPU implementation of matrix_vector product in ELLPACK format ******************** //
+// Simple CPU implementation of matrix_vector product in ELLPACK format.
 void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ, const double* x, double* y) 
 {
@@ -347,7 +362,7 @@ void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
   }
 }
 
-// ******************** function to calculate maximum absolute and relative difference of two arrays ******************** //
+// function to calculate maximum absolute and relative difference of two arrays
 void check_result(int M, double* y_s_c, double* y, double* max_abs_diff, double* max_rel_diff)
 {
   *max_abs_diff = 0;
@@ -363,7 +378,7 @@ void check_result(int M, double* y_s_c, double* y, double* max_abs_diff, double*
 }
 
 
-// ******************** GPU implementation of matrix_vector product in CSR format ******************** //
+// GPU implementation of matrix_vector product in CSR format
 __global__ void gpuMatrixVectorCSR(const int XBD, const int YBD, int M, int N, const int* IRP,
  const int* JA, const double* AZ, const double* x, double* y)
 {
@@ -406,7 +421,7 @@ __global__ void gpuMatrixVectorCSR(const int XBD, const int YBD, int M, int N, c
   }
 }
 
-// ******************** GPU implementation of matrix_vector product in ELLPACK format // 1D // ******************** //
+// GPU implementation of matrix_vector product in ELLPACK format // 1D //
 __global__ void gpuMatrixVectorELL(const int XBD, const int YBD, int M, int N, int NNZ, int MAXNZ,
  const int* JA, const double* AZ, const double* x, double* y)
 {
@@ -451,7 +466,7 @@ __global__ void gpuMatrixVectorELL(const int XBD, const int YBD, int M, int N, i
   }
 }
 
-// ******************** GPU implementation of matrix_vector product in ELLPACK format // 2D // ******************** //
+// GPU implementation of matrix_vector product in ELLPACK format // 2D //
 __global__ void gpuMatrixVectorELL_2d(const int XBD, const int YBD, int M, int N, int NNZ, int MAXNZ,
  const int* JA, const double* AZ, const double* x, double* y, size_t pitch_JA, size_t pitch_AZ)
 {
@@ -499,7 +514,7 @@ __global__ void gpuMatrixVectorELL_2d(const int XBD, const int YBD, int M, int N
 }
 
 
-// ******************** GPU implementation of matrix_vector product in ELLPACK format // 2D transposed // ******************** //
+// GPU implementation of matrix_vector product in ELLPACK format // 2D transposed //
 __global__ void gpuMatrixVectorELL_2dt(const int XBD, const int YBD, int M, int N, int NNZ, int MAXNZ,
  const int* JAt, const double* AZt, const double* x, double* y, size_t pitch_JA, size_t pitch_AZ)
 {
@@ -546,19 +561,19 @@ __global__ void gpuMatrixVectorELL_2dt(const int XBD, const int YBD, int M, int 
   }
 }
 
-// ******************** function to save result into CSV file ******************** //
-void save_result_cuda(char *program_name,      char* matrix_file,          int M,                            int N,
-                      int cudaXBD,             int cudaYBD,                int cudaXGD,                      int cudaYGD,
-                      double time_csr_serial,  double mflops_csr_serial,   double max_abs_diff_csr_serial,   double max_rel_diff_csr_serial,
-                      double time_ell_serial,  double mflops_ell_serial,   double max_abs_diff_ell_serial,   double max_rel_diff_ell_serial,
-                      double time_csr_gpu,     double mflops_csr_gpu,      double max_abs_diff_csr_gpu,      double max_rel_diff_csr_gpu,
-                      double time_ell_1d_gpu,  double mflops_ell_1d_gpu,   double max_abs_diff_ell_1d_gpu,   double max_rel_diff_ell_1d_gpu,
-                      double time_ell_2d_gpu,  double mflops_ell_2d_gpu,   double max_abs_diff_ell_2d_gpu,   double max_rel_diff_ell_2d_gpu, 
-                      double time_ell_2dt_gpu, double mflops_ell_2dt_gpu,  double max_abs_diff_ell_2dt_gpu,  double max_rel_diff_ell_2dt_gpu)
+// function to save result into CSV file
+void save_result_cuda(char *program_name, char* matrix_file,          int M, int N,
+                 int cudaXBD,             int cudaYBD,                int cudaXGD, int cudaYGD,
+                 double time_csr_serial,  double mflops_csr_serial,   double max_diff_csr_serial,
+                 double time_ell_serial,  double mflops_ell_serial,   double max_abs_diff_ell_serial,
+                 double time_csr_gpu,     double mflops_csr_gpu,      double max_abs_diff_csr_gpu,
+                 double time_ell_1d_gpu,  double mflops_ell_1d_gpu,   double max_abs_diff_ell_1d_gpu,
+                 double time_ell_2d_gpu,  double mflops_ell_2d_gpu,   double max_abs_diff_ell_2d_gpu,
+                 double time_ell_2dt_gpu, double mflops_ell_2dt_gpu,  double max_abs_diff_ell_2dt_gpu)
 {
   // open file for appending or create new file with header
   FILE *fp;
-  char filename[] = "result_gpu_test3.csv";  //file name
+  char filename[] = "result_gpu_test2.csv";  //file name
   fp = fopen(filename, "a+");
   if (fp == NULL) {
     printf("Error opening file.\n");
@@ -571,24 +586,24 @@ void save_result_cuda(char *program_name,      char* matrix_file,          int M
     // add header row
     fprintf(fp, "program_name,matrix_file,M,N,");
     fprintf(fp, "cudaXBD,cudaYBD,cudaXGD,cudaYGD,");
-    fprintf(fp, "time_csr_serial,mflops_csr_serial,max_abs_diff_csr_serial,max_rel_diff_csr_serial,");
-    fprintf(fp, "time_ell_serial,mflops_ell_serial,max_abs_diff_ell_serial,max_rel_diff_ell_serial,");
-    fprintf(fp, "time_csr_gpu,mflops_csr_gpu,max_abs_diff_csr_gpu,max_rel_diff_csr_gpu,");
-    fprintf(fp, "time_ell_1d_gpu,mflops_ell_1d_gpu,max_abs_diff_ell_1d_gpu,max_rel_diff_ell_1d_gpu,");
-    fprintf(fp, "time_ell_2d_gpu,mflops_ell_2d_gpu,max_abs_diff_ell_2d_gpu,max_rel_diff_ell_2d_gpu,");
-    fprintf(fp, "time_ell_2dt_gpu,mflops_ell_2dt_gpu,max_abs_diff_ell_2dt_gpu,max_rel_diff_ell_2dt_gpu\n");
+    fprintf(fp, "time_csr_serial,mflops_csr_serial,max_diff_csr_serial,");
+    fprintf(fp, "time_ell_serial,mflops_ell_serial,max_abs_diff_ell_serial,");
+    fprintf(fp, "time_csr_gpu,mflops_csr_gpu,max_abs_diff_csr_gpu,");
+    fprintf(fp, "time_ell_1d_gpu,mflops_ell_1d_gpu,max_abs_diff_ell_1d_gpu,");
+    fprintf(fp, "time_ell_2d_gpu,mflops_ell_2d_gpu,max_abs_diff_ell_2d_gpu,");
+    fprintf(fp, "time_ell_2dt_gpu,mflops_ell_2dt_gpu,max_abs_diff_ell_2dt_gpu\n");
   }
 
   // write new row to file
-  fprintf(fp, "%s,%s,%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
-          program_name,      matrix_file,        M,                         N,
-          cudaXBD,           cudaYBD,            cudaXGD,                   cudaYGD,
-          time_csr_serial,   mflops_csr_serial,  max_abs_diff_csr_serial,   max_rel_diff_csr_serial,
-          time_ell_serial,   mflops_ell_serial,  max_abs_diff_ell_serial,   max_rel_diff_ell_serial,
-          time_csr_gpu,      mflops_csr_gpu,     max_abs_diff_csr_gpu,      max_rel_diff_csr_gpu,
-          time_ell_1d_gpu,   mflops_ell_1d_gpu,  max_abs_diff_ell_1d_gpu,   max_rel_diff_ell_1d_gpu,
-          time_ell_2d_gpu,   mflops_ell_2d_gpu,  max_abs_diff_ell_2d_gpu,   max_rel_diff_ell_2d_gpu,
-          time_ell_2dt_gpu,  mflops_ell_2dt_gpu, max_abs_diff_ell_2dt_gpu,  max_rel_diff_ell_2dt_gpu);
+  fprintf(fp, "%s,%s,%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
+          program_name,      matrix_file,        M, N,
+          cudaXBD, cudaYBD,  cudaXGD,            cudaYGD,
+          time_csr_serial,   mflops_csr_serial,  max_diff_csr_serial,
+          time_ell_serial,   mflops_ell_serial,  max_abs_diff_ell_serial,
+          time_csr_gpu,      mflops_csr_gpu,     max_abs_diff_csr_gpu,
+          time_ell_1d_gpu,   mflops_ell_1d_gpu,  max_abs_diff_ell_1d_gpu,
+          time_ell_2d_gpu,   mflops_ell_2d_gpu,  max_abs_diff_ell_2d_gpu,
+          time_ell_2dt_gpu,  mflops_ell_2dt_gpu, max_abs_diff_ell_2dt_gpu);
 
   // close file
   fclose(fp);
