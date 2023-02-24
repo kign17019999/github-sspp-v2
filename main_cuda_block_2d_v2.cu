@@ -87,20 +87,26 @@ int main(int argc, char** argv)
   printf("finish loading matrix into 2D ELLPACK format\n");
 
   //transpose matrix JA and AZ from 2D ELLPACK format >. to achieve row-wise
-  int* JAt = (int*) malloc(matrix_ellpack.NNZ * sizeof(int));
-  double* AZt = (double*) malloc(matrix_ellpack.NNZ * sizeof(double));
+  int* JAt = (int*) malloc(matrix_ellpack.MATRIX_SIZE * sizeof(int));
+  double* AZt = (double*) malloc(matrix_ellpack.MATRIX_SIZE * sizeof(double));
 
   int index = 0;
   for (int j = 0; j < matrix_ellpack.MAXNZ; j++) {
       for (int i = 0; i < matrix_ellpack.M; i++) {
           int JA_index = j*matrix_ellpack.M + i;
-          if (j < matrix_ellpack.NNZ[i]) {
-              JAt[index] = matrix_ellpack.JA[JA_index];
-              AZt[index] = matrix_ellpack.AZ[JA_index];
-              index++;
+          int NZ_index = i + 1;
+          while (NZ_index < matrix_ellpack.M && matrix_ellpack.JA[NZ_index * matrix_ellpack.MAXNZ + j] == 0) {
+              NZ_index++;
           }
+          if (NZ_index - 1 < i) {
+              break;
+          }
+          JAt[index] = matrix_ellpack.JA[JA_index];
+          AZt[index] = matrix_ellpack.AZ[JA_index];
+          index++;
       }
   }
+
   printf("finish loading matrix into 2D tranpose ELLPACK format\n");
 
   // ----------------------- Host memory initialisation ----------------------- //
