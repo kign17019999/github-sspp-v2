@@ -77,7 +77,16 @@ int main(int argc, char** argv)
   }
   printf("finish loading matrix into 1D ELLPACK format\n");
 
-  //transpose matrix JA and AZ from 1D ELLPACK format >. to achieve row-wise  
+  // Save matrix file into memory in ELLPACK format store in 2D array.
+  struct ellpack_matrix_2d matrix_ellpack_2d;
+  ret_code = read_ellpack_matrix_2d(matrix_file, &matrix_ellpack_2d);
+  if (ret_code != 0) {
+    printf(" Failed to read matrix file\n");
+    return ret_code;
+  }
+  printf("finish loading matrix into 2D ELLPACK format\n");
+
+  //transpose matrix JA and AZ from 2D ELLPACK format >. to achieve row-wise  
   int* JAt = (int*) malloc(matrix_ellpack.M * matrix_ellpack.MAXNZ * sizeof(int));
   double* AZt = (double*) malloc(matrix_ellpack.M * matrix_ellpack.MAXNZ * sizeof(double));
   
@@ -88,7 +97,39 @@ int main(int argc, char** argv)
     }
   }
 
-  printf("finish loading matrix into 1D tranpose ELLPACK format\n");
+  printf("finish loading matrix into 2D tranpose ELLPACK format\n");
+  
+  printf("ELL normal: ");
+  printf("JA: ");
+  for (int i = 0; i < matrix_ellpack.M; i++) {
+    for (int j = 0; j < matrix_ellpack.MAXNZ; j++) {
+      printf("%d ", matrix_ellpack.JA[i * matrix_ellpack.MAXNZ + j]);
+    }
+    printf("\n    ");
+  }
+  printf("AZ: ");
+  for (int i = 0; i < matrix_ellpack.M; i++) {
+    for (int j = 0; j < matrix_ellpack.MAXNZ; j++) {
+      printf("%.3lf ", matrix_ellpack.AZ[i * matrix_ellpack.MAXNZ + j]);
+    }
+    printf("\n    ");
+  }
+  
+  printf("ELL Trans: ");
+  printf("JA: ");
+  for (int i = 0; i < matrix_ellpack.MAXNZ; i++) {
+    for (int j = 0; j < matrix_ellpack.M; j++) {
+      printf("%d ", JAt[i * matrix_ellpack.M + j]);
+    }
+    printf("\n    ");
+  }
+  printf("AZ: ");
+  for (int i = 0; i < matrix_ellpack.MAXNZ; i++) {
+    for (int j = 0; j < matrix_ellpack.M; j++) {
+      printf("%.3lf ", AZt[i * matrix_ellpack.M + j]);
+    }
+    printf("\n    ");
+  }
 
   // ----------------------- Host memory initialisation ----------------------- //
   
@@ -291,6 +332,8 @@ int main(int argc, char** argv)
   free(matrix_csr.AZ);
   free(matrix_ellpack.JA);
   free(matrix_ellpack.AZ);
+  free(matrix_ellpack_2d.JA);
+  free(matrix_ellpack_2d.AZ);
   free(JAt);
   free(AZt);
   free(x);
