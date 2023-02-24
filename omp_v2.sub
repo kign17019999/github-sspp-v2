@@ -64,7 +64,7 @@ export cpus=`cat $PBS_NODEFILE | wc -l`
 ## STEP 5: 
 ## Run the application
 
-./main_omp_v2 matrices/PR02R.mtx 16 128 new_csv_omp
-./main_omp_v2 matrices/cant.mtx 16 128 new_csv_omp
+./main_omp_v2 matrices/PR02R.mtx 16 128 new_csv_omp.csv
+./main_omp_v2 matrices/cant.mtx 16 128 new_csv_omp.csv
 
 /bin/rm -f ./$PBS_JOBID
