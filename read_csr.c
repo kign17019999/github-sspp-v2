@@ -54,7 +54,7 @@ int read_csr_matrix(const char *file_name, struct csr_matrix *matrix) {
         new_NNZ++;
     }
   }
-
+  matrix->IRP[0] = 0;  // initiate IRP
   for (i = 0; i < M; i++) matrix->IRP[i + 1] = matrix->IRP[i] + row_counts[i];  // add IRP values
   for (i = 0; i < M; i++) row_counts[i] = 0;    // reset row_count for used couting later
 
