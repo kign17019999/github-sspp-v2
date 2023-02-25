@@ -249,7 +249,7 @@ int main(int argc, char** argv)
 
   // ======================= save result into CSV file ======================= //
 
-    save_result_omp(program_name,      matrix_file,        matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ell.MAXNZ,
+    save_result_omp(program_name,      matrix_file,        matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ,
                     nthreads,          chunk_size,
                     time_csr_serial,   mflops_csr_serial,  0,                        0,
                     time_ell_serial,   mflops_ell_serial,  max_abs_diff_ell_serial,  max_rel_diff_ell_serial,
