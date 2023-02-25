@@ -66,11 +66,14 @@ export cpus=`cat $PBS_NODEFILE | wc -l`
 
 datasets=(cage4 Cube_Coup_dt0 FEM_3D_thermal1 mhda416 ML_Laplace thermal1 mcfe bcsstk17 thermal2 olm1000 mac_econ_fwd500 thermomech_TK adder_dcop_32 mhd4800a nlpkkt80 west2021 cop20k_A webbase-1M cavity10 raefsky2 dc1 rdist2 af23560 amazon0302 cant lung2 af_1_k101 olafu PR02R roadNet-PA)
 
-for BS in 1, 500, 1000
+for CPU in 1, 2, 8, 12, 16
 do
-    for dataset in "${datasets[@]}";
-    do     
-        ./main_omp_v2 "matrices/${dataset}.mtx" 16 $BS "result_omp_testcase1.csv"
+    for BS in 256
+    do
+        for dataset in "${datasets[@]}";
+        do     
+            ./main_omp_v2 "matrices/${dataset}.mtx" $CPU $BS "result_omp_testcase2.csv"
+        done
     done
 done
 
