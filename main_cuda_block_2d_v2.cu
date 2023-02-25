@@ -16,7 +16,7 @@ void MatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
 void MatrixVectorELLPACK(int M, int N, int NNZ, int MAXNZ, const int* JA,
  const double* AZ, const double* x, double* y);
 void check_result(int M, double* y_s_c, double* y, double* max_abs_diff, double* max_rel_diff);
-void save_result_cuda(char *program_name,      char* matrix_file,          int M,                            int N,
+void save_result_cuda(char *program_name,      char* matrix_file,          int M, int N,                     int NNZ, int MAZNZ,
                       int cudaXBD,             int cudaYBD,                int cudaXGD,                      int cudaYGD,
                       double time_csr_serial,  double mflops_csr_serial,   double max_abs_diff_csr_serial,   double max_rel_diff_csr_serial,
                       double time_ell_serial,  double mflops_ell_serial,   double max_abs_diff_ell_serial,   double max_rel_diff_ell_serial,
@@ -280,7 +280,7 @@ int main(int argc, char** argv)
 
   // ======================= save result into CSV file ======================= //
   
-  save_result_cuda( program_name,      matrix_file,        matrix_csr.M,             matrix_csr.N,
+  save_result_cuda( program_name,      matrix_file,        matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ell.MAXNZ,
                     GRID_DIM_ELL.x,    GRID_DIM_ELL.y,     GRID_DIM_CSR.x,           GRID_DIM_CSR.y,
                     time_csr_serial,   mflops_csr_serial,  0,                        0,
                     time_ell_serial,   mflops_ell_serial,  max_abs_diff_ell_serial,  max_rel_diff_ell_serial,
@@ -555,7 +555,7 @@ __global__ void gpuMatrixVectorELL_2dt(const int XBD, const int YBD, int M, int 
 }
 
 // ******************** function to save result into CSV file ******************** //
-void save_result_cuda(char *program_name,      char* matrix_file,          int M,                            int N,
+void save_result_cuda(char *program_name,      char* matrix_file,          int M, int N,                     int NNZ, int MAZNZ,
                       int cudaXBD,             int cudaYBD,                int cudaXGD,                      int cudaYGD,
                       double time_csr_serial,  double mflops_csr_serial,   double max_abs_diff_csr_serial,   double max_rel_diff_csr_serial,
                       double time_ell_serial,  double mflops_ell_serial,   double max_abs_diff_ell_serial,   double max_rel_diff_ell_serial,
@@ -578,7 +578,7 @@ void save_result_cuda(char *program_name,      char* matrix_file,          int M
   long file_size = ftell(fp);
   if (file_size == 0) {
     // add header row
-    fprintf(fp, "program_name,matrix_file,M,N,");
+    fprintf(fp, "program_name,matrix_file,M,N,NNZ,MAXNZ,");
     fprintf(fp, "cudaXBD,cudaYBD,cudaXGD,cudaYGD,");
     fprintf(fp, "time_csr_serial,mflops_csr_serial,max_abs_diff_csr_serial,max_rel_diff_csr_serial,");
     fprintf(fp, "time_ell_serial,mflops_ell_serial,max_abs_diff_ell_serial,max_rel_diff_ell_serial,");
@@ -589,8 +589,8 @@ void save_result_cuda(char *program_name,      char* matrix_file,          int M
   }
 
   // write new row to file
-  fprintf(fp, "%s,%s,%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
-          program_name,      matrix_file,        M,                         N,
+  fprintf(fp, "%s,%s,%d,%d,%d,%d,%d,%d,%d,%d,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\n",
+          program_name,      matrix_file,        M, N,                      NNZ, MAZNZ,
           cudaXBD,           cudaYBD,            cudaXGD,                   cudaYGD,
           time_csr_serial,   mflops_csr_serial,  max_abs_diff_csr_serial,   max_rel_diff_csr_serial,
           time_ell_serial,   mflops_ell_serial,  max_abs_diff_ell_serial,   max_rel_diff_ell_serial,

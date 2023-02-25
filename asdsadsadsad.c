@@ -8,11 +8,11 @@ int read_ellpack_matrix_2d(const char *file_name, struct ellpack_matrix_2d *matr
   int ret_code;
 
   FILE *f = fopen(file_name, "r");
-  if (!f) { // check availability of file
+  if (!f) {
     return -1;
   }
 
-  if (mm_read_banner(f, &matcode) != 0) { // check availability to read banner
+  if (mm_read_banner(f, &matcode) != 0) {
     fclose(f);
     return -1;
   }
@@ -30,8 +30,8 @@ int read_ellpack_matrix_2d(const char *file_name, struct ellpack_matrix_2d *matr
 
   int row, col;
   double AZ;
-  int *row_counts = (int *) calloc(M, sizeof(int)); //array store number of element each row
-  int *row_counts_0 = (int *) calloc(M, sizeof(int)); //array for count available slot each row
+  int *row_counts = (int *) calloc(M, sizeof(int));
+  int *row_counts_0 = (int *) calloc(M, sizeof(int));
 
   for (i = 0; i < NNZ; i++) {
     if(mm_is_pattern(matcode)){
@@ -49,16 +49,16 @@ int read_ellpack_matrix_2d(const char *file_name, struct ellpack_matrix_2d *matr
     col--;
 
     row_counts[row]++;
-    if (mm_is_symmetric(matcode) && row != col) { // if symm and not a diagonal elements >> increase number if row_count and NNZ
+    if (mm_is_symmetric(matcode) && row != col) {
         row_counts[col]++;
         new_NNZ++;
     }
   }  
 
   int MAXNZ = 0;
-  for (i = 0; i < M; i++) {   // find mex element per row
+  for (i = 0; i < M; i++) {
     if (row_counts[i] > MAXNZ) {
-      MAXNZ = row_counts[i]; 
+      MAXNZ = row_counts[i];
     }
   }
   
@@ -68,38 +68,38 @@ int read_ellpack_matrix_2d(const char *file_name, struct ellpack_matrix_2d *matr
   matrix->AZ = (double **) malloc(M * sizeof(double*));
 
   for (i = 0; i < M; i++) {
-    matrix->JA[i] = (int *) calloc(matrix->MAXNZ, sizeof(int)); // initiate 0 to all JA's element
-    matrix->AZ[i] = (double *) malloc(matrix->MAXNZ * sizeof(double));  
+    matrix->JA[i] = (int *) calloc(matrix->MAXNZ, sizeof(int));
+    matrix->AZ[i] = (double *) malloc(matrix->MAXNZ * sizeof(double));
   }
 
-  rewind(f); // reopen (index) file
-  mm_read_banner(f, &matcode); // just for skip
-  mm_read_mtx_crd_size(f, &M, &N, &NNZ); // just for skip
+  rewind(f);
+  mm_read_banner(f, &matcode);
+  mm_read_mtx_crd_size(f, &M, &N, &NNZ);
   
   for (i = 0; i < NNZ; i++) {
-    if (fscanf(f, "%d %d", &row, &col) != 2) { 
+    if (fscanf(f, "%d %d", &row, &col) != 2) {
       fclose(f);
       return -1;
     }
     row--;
     col--;
 
-    if(mm_is_pattern(matcode)) { // if data is binary --> make value =1
+    if(mm_is_pattern(matcode)) {
       AZ = 1.0;
     } else {
-      if (fscanf(f, "%lf", &AZ) != 1) { //if a normal data --> get data from file
+      if (fscanf(f, "%lf", &AZ) != 1) {
         fclose(f);
         return -1;
       }    
     }
 
-    int free_col = row_counts_0[row]; // get avaiable col at current row
+    int free_col = row_counts_0[row];
     matrix->JA[row][free_col] = col;
     matrix->AZ[row][free_col] = AZ;
     row_counts_0[row]++;
   
-    if(mm_is_symmetric(matcode) && row != col){ // if symm and not a diagonal elements --> copy data into opposite site
-      free_col = row_counts_0[col]; // get avaiable col at current row
+    if(mm_is_symmetric(matcode) && row != col){
+      free_col = row_counts_0[col];
       matrix->JA[col][free_col] = row;
       matrix->AZ[col][free_col] = AZ;
       row_counts_0[col]++;
@@ -108,6 +108,5 @@ int read_ellpack_matrix_2d(const char *file_name, struct ellpack_matrix_2d *matr
 
   fclose(f);
   free(row_counts);
-  free(row_counts_0);
   return 0;
 }
