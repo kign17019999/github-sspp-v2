@@ -1,0 +1,79 @@
+#!/bin/bash
+##
+## GPU submission script for PBS on CRESCENT
+## -----------------------------------------
+##
+## Follow the 5 steps below to configure. If you edit this from Windows,
+## *before* submitting via "qsub" run "dos2unix" on this file - or you will
+## get strange errors. You have been warned.
+## 
+## STEP 1:
+## The following line contains the job name:
+##
+#PBS -N SSPP_CUDA
+##
+## STEP 2:
+##
+##
+#PBS -l select=1:ncpus=1:mpiprocs=1:ngpus=1
+##
+## STEP 3:
+##
+## Select correct queue:
+##
+## for this class we have a special queue
+##
+#PBS -q gpu
+##PBS -l walltime=1:00:00
+##
+## STEP 4:
+##
+## Put YOUR email address in the next line:
+##
+#PBS -M purin.tanirat.240@cranfield.ac.uk
+##
+##
+##
+## DO NOT CHANGE the following lines
+##------------------------------------------------
+#PBS -j oe
+#PBS -v "CUDA_VISIBLE_DEVICES="
+#PBS -W sandbox=PRIVATE
+#PBS -V
+#PBS -m abe 
+#PBS -k n
+##
+## Change to working directory
+ln -s $PWD $PBS_O_WORKDIR/$PBS_JOBID
+cd $PBS_O_WORKDIR
+## Allocated gpu(s)
+echo CUDA_VISIBLE_DEVICES=$CUDA_VISIBLE_DEVICES
+##
+## Calculate number of CPUs
+cpus=`cat $PBS_NODEFILE | wc -l`
+gpus=`echo $CUDA_VISIBLE_DEVICES|awk -F"," '{print NF}'`
+##
+##
+##-------------------------------------------------
+##
+## STEP 5: 
+## 
+## Put correct parameters in mpirun execution line
+## below:
+##
+
+datasets=(webbase-1M dc1)
+
+for XBD in 8, 16, 32, 64, 128
+do
+    for YBD in 8, 16, 32, 64, 128
+    do
+        for dataset in "${datasets[@]}";
+        do     
+            ./main_cuda_block_2d_v2_noell "matrices/${dataset}.mtx" $XBD $YBD "result_cuda_testcase3_nodell.csv"
+        done
+    done
+done
+
+
+/bin/rm -f $PBS_JOBID
