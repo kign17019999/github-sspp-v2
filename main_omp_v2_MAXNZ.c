@@ -266,8 +266,8 @@ int main(int argc, char** argv)
   free(matrix_csr.AZ);
   free(matrix_ellpack.JA);
   free(matrix_ellpack.AZ);
-  free(matrix_ellpack_2d.JA);
-  free(matrix_ellpack_2d.AZ);
+  // free(matrix_ellpack_2d.JA);
+  // free(matrix_ellpack_2d.AZ);
   // free(x);
   // free(y_s_c);
   // free(y_s_e);
