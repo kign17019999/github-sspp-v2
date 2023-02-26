@@ -72,7 +72,7 @@ do
     do
         for dataset in "${datasets[@]}";
         do     
-            ./main_omp_v2_MAZNZ "matrices/${dataset}.mtx" $CPU $BS "result_omp_testcase_MAXNZ.csv"
+            ./main_omp_v2_MAXNZ "matrices/${dataset}.mtx" $CPU $BS "result_omp_testcase_MAXNZ.csv"
         done
     done
 done
