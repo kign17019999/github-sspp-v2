@@ -17,3 +17,4 @@ cuda_add_executable(main_cuda_block_1d main_cuda_block_1d.cu read_csr.c read_ell
 cuda_add_executable(main_cuda_block_2d main_cuda_block_2d.cu read_csr.c read_ellpack.c mmio.c wtime.c)
 cuda_add_executable(main_cuda_block_2d_v2 main_cuda_block_2d_v2.cu read_csr.c read_ellpack.c read_ellpack_2d.c mmio.c wtime.c)
 cuda_add_executable(main_cuda_block_2d_v2_noell main_cuda_block_2d_v2_noell.cu read_csr.c read_ellpack.c read_ellpack_2d.c mmio.c wtime.c)
+cuda_add_executable(main_cuda_block_2d_v2_unroll main_cuda_block_2d_v2_unroll.cu read_csr.c read_ellpack.c read_ellpack_2d.c mmio.c wtime.c)
