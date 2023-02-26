@@ -524,6 +524,54 @@ __global__ void gpuMatrixVectorELL_2d(const int XBD, const int YBD, int M, int N
   }
 }
 
+
+// ******************** GPU implementation of matrix_vector product in ELLPACK format // 2D transposed // ******************** //
+__global__ void gpuMatrixVectorELL_2dt(const int XBD, const int YBD, int M, int N, int NNZ, int MAXNZ,
+ const int* JAt, const double* AZt, const double* x, double* y, size_t pitch_JA, size_t pitch_AZ)
+{
+  int row = blockIdx.x*blockDim.y + threadIdx.y;
+  int tid_c = threadIdx.x;
+  int tid_r = threadIdx.y;
+  int num_threads_per_row = blockDim.x;
+
+  // 1D shared memory is being used because the dimension of the shared memory needs to be specified at runtime.
+  extern __shared__ double sdata[];
+
+  if (row < M) {
+    double t = 0.0;
+    for (int col = tid_c; col < MAXNZ; col += num_threads_per_row) {
+      // Compute the address of the (col, row) element in the JAt and AZt arrays
+      int* row_JAt = (int*)((char*)JAt + col * pitch_JA);
+      double* row_AZt = (double*)((char*)AZt + col * pitch_AZ);
+
+      t += row_AZt[row] * x[row_JAt[row]];
+    }
+    // Starting address of indexing 1d shared memory for 2d data
+    int sindex = tid_r*XBD+tid_c;
+    sdata[sindex] = t;
+    __syncthreads();
+
+    // Perform row-reduction operation to sum the elements in sdata and store the result in y[row].
+    int prev_stride = num_threads_per_row/2;
+    for (int stride = num_threads_per_row/2; stride > 0; stride >>= 1) {
+      if (tid_c < stride) {
+        if(tid_c == stride -1 && prev_stride%2==1){
+          sdata[sindex] += sdata[sindex + stride] + sdata[sindex + stride +1];
+        }else{
+          sdata[sindex] += sdata[sindex + stride];
+        }
+      }
+      __syncthreads();
+      prev_stride=stride;
+    }
+
+    // Thread 0 writes the final result to global memory
+    if (tid_c == 0) {
+      y[row] = sdata[sindex];
+    }
+  }
+}
+
 // ******************** function to save result into CSV file ******************** //
 void save_result_cuda(char *program_name,      char* matrix_file,          int M, int N,                     int NNZ, int MAZNZ,
                       int cudaXBD,             int cudaYBD,                int cudaXGD,                      int cudaYGD,
