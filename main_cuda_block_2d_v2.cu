@@ -281,7 +281,7 @@ int main(int argc, char** argv)
   // ======================= save result into CSV file ======================= //
   
   save_result_cuda( program_name,      matrix_file,        matrix_csr.M, matrix_csr.N, matrix_csr.NNZ, matrix_ellpack.MAXNZ,
-                    GRID_DIM_ELL.x,    GRID_DIM_ELL.y,     GRID_DIM_CSR.x,           GRID_DIM_CSR.y,
+                    BLOCK_DIM.x,       BLOCK_DIM.y,        GRID_DIM_CSR.x,           GRID_DIM_CSR.y,
                     time_csr_serial,   mflops_csr_serial,  0,                        0,
                     time_ell_serial,   mflops_ell_serial,  max_abs_diff_ell_serial,  max_rel_diff_ell_serial,
                     time_csr_gpu,      mflops_csr_gpu,     max_abs_diff_csr_gpu,     max_rel_diff_csr_gpu,
