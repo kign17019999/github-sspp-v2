@@ -298,8 +298,8 @@ int main(int argc, char** argv)
   free(matrix_csr.AZ);
   // free(matrix_ellpack.JA);
   // free(matrix_ellpack.AZ);
-  free(JAt);
-  free(AZt);
+  // free(JAt);
+  // free(AZt);
   free(x);
   free(y_s_c);
   // free(y_s_e);
