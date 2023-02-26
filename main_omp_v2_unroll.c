@@ -384,17 +384,59 @@ void ompMatrixVectorELL(int M, int N, int NNZ, int MAXNZ, const int* JA,
 {
 #pragma omp parallel shared(M, N, NNZ, MAXNZ, JA, AZ, x, y, chunk_size)
 {
-  double t;
-  int ja_idx;
+    int i, j, k;
+    double t1, t2, t3, t4, t5, t6, t7, t8;
+    double sum1, sum2, sum3, sum4, sum5, sum6, sum7, sum8;
+
 #pragma omp for schedule(dynamic, chunk_size)
-  for (int row = 0; row < M; row++) {
-    t = 0;
-    for (int col = 0; col < MAXNZ; col++) {
-      ja_idx = row * MAXNZ + col;
-      t += AZ[ja_idx] * x[JA[ja_idx]];
+ 
+    for (i = 0; i < M; i++) {
+      sum1 = 0.0;
+      sum2 = 0.0;
+      sum3 = 0.0;
+      sum4 = 0.0;
+      sum5 = 0.0;
+      sum6 = 0.0;
+      sum7 = 0.0;
+      sum8 = 0.0;
+
+      for (j = 0; j < MAXNZ - 7; j += 8) {
+        int ja_idx1 = i * MAXNZ + j;
+        int ja_idx2 = i * MAXNZ + j + 1;
+        int ja_idx3 = i * MAXNZ + j + 2;
+        int ja_idx4 = i * MAXNZ + j + 3;
+        int ja_idx5 = i * MAXNZ + j + 4;
+        int ja_idx6 = i * MAXNZ + j + 5;
+        int ja_idx7 = i * MAXNZ + j + 6;
+        int ja_idx8 = i * MAXNZ + j + 7;
+
+        t1 = AZ[ja_idx1] * x[JA[ja_idx1]];
+        t2 = AZ[ja_idx2] * x[JA[ja_idx2]];
+        t3 = AZ[ja_idx3] * x[JA[ja_idx3]];
+        t4 = AZ[ja_idx4] * x[JA[ja_idx4]];
+        t5 = AZ[ja_idx5] * x[JA[ja_idx5]];
+        t6 = AZ[ja_idx6] * x[JA[ja_idx6]];
+        t7 = AZ[ja_idx7] * x[JA[ja_idx7]];
+        t8 = AZ[ja_idx8] * x[JA[ja_idx8]];
+
+        sum1 += t1;
+        sum2 += t2;
+        sum3 += t3;
+        sum4 += t4;
+        sum5 += t5;
+        sum6 += t6;
+        sum7 += t7;
+        sum8 += t8;
+      }
+
+      for (k = MAXNZ - (MAXNZ % 8); k < MAXNZ; k++) {
+        int ja_idx = i * MAXNZ + k;
+        double t = AZ[ja_idx] * x[JA[ja_idx]];
+        sum1 += t;
+      }
+
+      y[i] = sum1 + sum2 + sum3 + sum4 + sum5 + sum6 + sum7 + sum8;
     }
-    y[row] = t;
-  }
 }
 }
 
