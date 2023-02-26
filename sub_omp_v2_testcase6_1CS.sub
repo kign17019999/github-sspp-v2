@@ -73,11 +73,11 @@ do
     do
         for dataset in "${datasets[@]}";
         do     
-            ./main_omp_v2 "matrices/${dataset}.mtx" $CPU $BS "result_omp_testcase5.csv"
+            ./main_omp_v2 "matrices/${dataset}.mtx" $CPU $BS "result_omp_testcase6.csv"
         done
         for dataset in "${datasets2[@]}";
         do
-            ./main_omp_v2_noell "matrices/${dataset}.mtx" $CPU $BS "result_omp_testcase5.csv"
+            ./main_omp_v2_noell "matrices/${dataset}.mtx" $CPU $BS "result_omp_testcase6.csv"
         done
     done
 done
