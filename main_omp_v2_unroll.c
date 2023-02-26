@@ -349,7 +349,7 @@ void ompMatrixVectorCSR(int M, int N, const int* IRP, const int* JA,
       sum7 = 0.0;
       sum8 = 0.0;
 
-      for (j = start; j < end - 3; j += 4) {
+      for (j = start; j < end - 7; j += 8) {
         t1 = AZ[j] * x[JA[j]];
         t2 = AZ[j + 1] * x[JA[j + 1]];
         t3 = AZ[j + 2] * x[JA[j + 2]];
