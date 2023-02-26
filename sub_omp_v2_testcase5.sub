@@ -1,0 +1,86 @@
+#!/bin/bash
+##
+## MPI submission script for PBS on CRESCENT
+## -----------------------------------------
+##
+## Follow the 5 steps below to configure. If you edit this from Windows,
+## *before* submitting via "qsub" run "dos2unix" on this file - or you will
+## get strange errors. You have been warned.
+## 
+## STEP 1:
+##
+## Enter a job name after the -N on the line below:
+##
+#PBS -N SSPP_OMP 
+##
+## STEP 2:
+##
+## The select line below selects 1 chunk of 4 cpus 
+## Make sure to match ncpus to the number of threads 
+##
+#PBS -l select=1:ncpus=16:mpiprocs=16
+##
+## STEP 3:
+##
+## Select the correct queue by modifying the #PBS -q line below
+##
+## half_hour	-  30 minutes
+## one_hour	-   1 hour
+## half_day	-  12 hours
+## one_day	-  24 hours
+## two_day	-  48 hours
+## five_day	- 120 hours
+## ten_day	- 240 hours (by special arrangement)
+##
+#PBS -q one_day
+##
+## STEP 4:
+##
+## Replace the hpc@cranfield.ac.uk email address
+## with your email address after the -M on the line below:
+## Your email address is NOT your username
+##
+#PBS -m abe 
+#PBS -M purin.tanirat.240@cranfield.ac.uk
+##
+##
+##
+## DO NOT CHANGE the following lines
+##------------------------------------------------
+#PBS -j oe
+#PBS -W sandbox=PRIVATE
+#PBS -k n
+ln -s $PWD $PBS_O_WORKDIR/$PBS_JOBID
+##
+## Change to working directory
+cd $PBS_O_WORKDIR
+##
+## Calculate number of CPUs
+export cpus=`cat $PBS_NODEFILE | wc -l`
+##
+##
+##-------------------------------------------------
+##
+## STEP 5: 
+## Run the application
+
+datasets=(cage4 Cube_Coup_dt0 FEM_3D_thermal1 mhda416 ML_Laplace thermal1 mcfe bcsstk17 thermal2 olm1000 mac_econ_fwd500 thermomech_TK adder_dcop_32 mhd4800a nlpkkt80 west2021 cop20k_A webbase-1M cavity10 raefsky2 dc1 rdist2 af23560 amazon0302 cant lung2 af_1_k101 olafu PR02R roadNet-PA)
+datasets2=(webbase-1M dc1)
+
+for CPU in 16
+do
+    for BS in 1 2 4 8 12 16 32 64 128 256 512 1024 2048 4096 
+    do
+        for dataset in "${datasets[@]}";
+        do     
+            ./main_omp_v2 "matrices/${dataset}.mtx" $CPU $BS "result_omp_testcase5.csv"
+        done
+
+        for dataset in "${datasets2[@]}";
+        do
+            ./main_omp_v2_noell "matrices/${dataset}.mtx" $CPU $BS "result_omp_testcase5_noell.csv"
+        done
+    done
+done
+
+/bin/rm -f ./$PBS_JOBID
