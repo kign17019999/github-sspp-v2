@@ -472,64 +472,34 @@ __global__ void gpuMatrixVectorELL_2d(const int XBD, const int YBD, int M, int N
   extern __shared__ double sdata[];
 
   if (row < M) {
-    double t = 0.0;
-    for (int col = tid_c; col < MAXNZ; col += num_threads_per_row) {
+    double t1 = 0.0;
+    double t2 = 0.0;
+    double t3 = 0.0;
+    double t4 = 0.0;
+    double t5 = 0.0;
+    double t6 = 0.0;
+    double t7 = 0.0;
+    double t8 = 0.0;
+
+    for (int col = tid_c; col < MAXNZ - 7; col += num_threads_per_row * 8) {
       // Compute the address of the (row, col) element in the JA and AZ arrays
       int* row_JA = (int*)((char*)JA + row * pitch_JA);
       double* row_AZ = (double*)((char*)AZ + row * pitch_AZ);
 
-      t += row_AZ[col] * x[row_JA[col]];
-    }
-    // Starting address of indexing 1d shared memory for 2d data
-    int sindex = tid_r*XBD+tid_c;
-    sdata[sindex] = t;
-    __syncthreads();
-
-    // Perform row-reduction operation to sum the elements in sdata and store the result in y[row].
-    int prev_stride = num_threads_per_row/2;
-    for (int stride = num_threads_per_row/2; stride > 0; stride >>= 1) {
-      if (tid_c < stride) {
-        if(tid_c == stride -1 && prev_stride%2==1){
-          sdata[sindex] += sdata[sindex + stride] + sdata[sindex + stride +1];
-        }else{
-          sdata[sindex] += sdata[sindex + stride];
-        }
-      }
-      __syncthreads();
-      prev_stride=stride;
+      t1 += row_AZ[col] * x[row_JA[col]];
+      t2 += row_AZ[col + 1] * x[row_JA[col + 1]];
+      t3 += row_AZ[col + 2] * x[row_JA[col + 2]];
+      t4 += row_AZ[col + 3] * x[row_JA[col + 3]];
+      t5 += row_AZ[col + 4] * x[row_JA[col + 4]];
+      t6 += row_AZ[col + 5] * x[row_JA[col + 5]];
+      t7 += row_AZ[col + 6] * x[row_JA[col + 6]];
+      t8 += row_AZ[col + 7] * x[row_JA[col + 7]];
     }
 
-    // Thread 0 writes the final result to global memory
-    if (tid_c == 0) {
-      y[row] = sdata[sindex];
-    }
-  }
-}
+    double t = t1 + t2 + t3 + t4 + t5 + t6 + t7 + t8;
 
-
-// ******************** GPU implementation of matrix_vector product in ELLPACK format // 2D transposed // ******************** //
-__global__ void gpuMatrixVectorELL_2dt(const int XBD, const int YBD, int M, int N, int NNZ, int MAXNZ,
- const int* JAt, const double* AZt, const double* x, double* y, size_t pitch_JA, size_t pitch_AZ)
-{
-  int row = blockIdx.x*blockDim.y + threadIdx.y;
-  int tid_c = threadIdx.x;
-  int tid_r = threadIdx.y;
-  int num_threads_per_row = blockDim.x;
-
-  // 1D shared memory is being used because the dimension of the shared memory needs to be specified at runtime.
-  extern __shared__ double sdata[];
-
-  if (row < M) {
-    double t = 0.0;
-    for (int col = tid_c; col < MAXNZ; col += num_threads_per_row) {
-      // Compute the address of the (col, row) element in the JAt and AZt arrays
-      int* row_JAt = (int*)((char*)JAt + col * pitch_JA);
-      double* row_AZt = (double*)((char*)AZt + col * pitch_AZ);
-
-      t += row_AZt[row] * x[row_JAt[row]];
-    }
-    // Starting address of indexing 1d shared memory for 2d data
-    int sindex = tid_r*XBD+tid_c;
+    // Store result in shared memory
+    int sindex = tid_r * XBD + tid_c;
     sdata[sindex] = t;
     __syncthreads();
 
